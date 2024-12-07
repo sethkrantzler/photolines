@@ -22,6 +22,7 @@ let displayImage = undefined
 let displayFrame = undefined
 let lastSelectedPicturePos = undefined
 let isAnimating = false
+let isLoading = true;
 //#endregion
 
 const parameters = {
@@ -191,7 +192,7 @@ function createDisplayPicture() {
     displayFrame = new THREE.Mesh(rectGeometry, rectMaterial);
     displayFrame.name = 'frame'
     const imageGeometry = new THREE.PlaneGeometry(parameters.pictureSize / 2, parameters.pictureSize * 1);
-    const imageMaterial = new THREE.MeshBasicMaterial({ side: THREE.FrontSide });
+    const imageMaterial = new THREE.MeshStandardMaterial({ side: THREE.FrontSide, metalness: 0.25, roughness: 0.1 });
     displayImage = new THREE.Mesh(imageGeometry, imageMaterial);
     displayImage.name = 'picture'
     displayImage.position.z = 0.02
@@ -201,14 +202,14 @@ function createDisplayPicture() {
     // Rotate y by 90 degrees
     displayPicture.rotation.y = Math.PI / 2;
     displayPicture.add(displayFrame, displayImage);
+    displayPicture.visible = false;
     scene.add(displayPicture)
 }
 
 // Function to update the display picture asynchronously
 async function updateDisplayPicture() {
     const pictureChild = selectedPicture.children.find((obj) => obj.name.includes('picture'));
-    displayImage.material.map = pictureChild.material.map;
-    // Update the geometries immediately
+    displayImage.material.map = pictureChild.material.map
     displayImage.geometry = pictureChild.geometry;
     displayFrame.geometry = selectedPicture.children.find((obj) => obj.name === 'frame').geometry;
 }
@@ -250,7 +251,7 @@ function createWireWithObjects(start, end) {
 
     for (let i = 0; i < numRectangles; i++) {
         const picture = new THREE.Group();
-        const pictureName = imgList[picturesLoaded]
+        const texture = textureList[picturesLoaded];
         picture.name = `picture-${picturesLoaded}`;
         picturesLoaded++
         if (picturesLoaded > totalPictures) return group;
@@ -268,53 +269,50 @@ function createWireWithObjects(start, end) {
         sphere.position.x += 0.02
 
         // Image 
-        const url = 'images/'+pictureName;
         const imageContainer = new THREE.Group();
 
-        textureLoader.load(url, (texture) => {
-            const imgWidth = texture.image.width;
-            const imgHeight = texture.image.height;
-            let width, height;
+        const imgWidth = texture.image.width;
+        const imgHeight = texture.image.height;
+        let width, height;
 
-            // Adjust geometry dimensions based on image size
-            if (imgWidth > imgHeight) {
-                width = parameters.pictureSize * 0.95;
-                height = (imgHeight / imgWidth) * width;
-            } else {
-                height = parameters.pictureSize * 0.95;
-                width = (imgWidth / imgHeight) * height;
-            }
+        // Adjust geometry dimensions based on image size
+        if (imgWidth > imgHeight) {
+            width = parameters.pictureSize * 0.95;
+            height = (imgHeight / imgWidth) * width;
+        } else {
+            height = parameters.pictureSize * 0.95;
+            width = (imgWidth / imgHeight) * height;
+        }
 
 
-            // Frame
-            imageContainer.name = 'imageContainer'
-            const rectGeometry = new THREE.PlaneGeometry(width + parameters.framePadding, height + parameters.framePadding);
-            const rectMaterial = new THREE.MeshBasicMaterial({ color: 'white', side: THREE.DoubleSide });
-            const frame = new THREE.Mesh(rectGeometry, rectMaterial);
-            frame.name = 'frame'
-            frame.position.z = 0.0199;
+        // Frame
+        imageContainer.name = 'imageContainer'
+        const rectGeometry = new THREE.PlaneGeometry(width + parameters.framePadding, height + parameters.framePadding);
+        const rectMaterial = new THREE.MeshBasicMaterial({ color: 'white', side: THREE.DoubleSide });
+        const frame = new THREE.Mesh(rectGeometry, rectMaterial);
+        frame.name = 'frame'
+        frame.position.z = 0.0199;
 
-            // Image geometry and material
-            const imageGeometry = new THREE.PlaneGeometry(width, height);
-            const imageMaterial = new THREE.MeshStandardMaterial({
-                map: texture,
-                metalness: 0.5,
-                roughness: 0.1,
-            });
-            const image = new THREE.Mesh(imageGeometry, imageMaterial);
-            image.name = 'picture'+(picturesLoaded);
-            image.position.z = 0.02;
-
-            // Add the image to the scene or group
-            imageContainer.add(image);
-                // Image Container
-            imageContainer.add(frame) 
-            imageContainer.position.set(pos.x, pos.y - 0.5*height, pos.z);
-            imageContainer.rotation.x = THREE.MathUtils.degToRad(Math.random()*20-10);
-            // Rotate y by 90 degrees
-            imageContainer.rotation.y = Math.PI / 2;
+        // Image geometry and material
+        const imageGeometry = new THREE.PlaneGeometry(width, height);
+        texture.colorSpace = THREE.SRGBColorSpace
+        const imageMaterial = new THREE.MeshStandardMaterial({
+            map: texture,
+            metalness: 0.5,
+            roughness: 0.1,
         });
+        const image = new THREE.Mesh(imageGeometry, imageMaterial);
+        image.name = 'picture'+(picturesLoaded);
+        image.position.z = 0.02;
 
+        // Add the image to the scene or group
+        imageContainer.add(image);
+            // Image Container
+        imageContainer.add(frame) 
+        imageContainer.position.set(pos.x, pos.y - 0.5*height, pos.z);
+        imageContainer.rotation.x = THREE.MathUtils.degToRad(Math.random()*20-10);
+        // Rotate y by 90 degrees
+        imageContainer.rotation.y = Math.PI / 2;
 
         picture.add(sphere);
         picture.add(imageContainer);
@@ -325,7 +323,7 @@ function createWireWithObjects(start, end) {
 }
 
 let objectsGroup = new THREE.Group();
-function createSceneObjects() {
+function createSceneObjects(iniitialLoad = false) {
     scene.remove(objectsGroup);
     objectsGroup = new THREE.Group();
 
@@ -347,6 +345,9 @@ function createSceneObjects() {
     }
 
     scene.add(objectsGroup);
+    if (iniitialLoad) {
+        moveCameraIn(parameters.offset - ((totalWires-1) * parameters.separation))
+    };
 }
 
 // Update objects when GUI parameters change
@@ -356,6 +357,7 @@ gui.onChange(() => {
 
 
 //#region Image Loading
+// Function to load a texture asynchronously
 function loadTextureAsync(url) {
     return new Promise((resolve, reject) => {
         const loader = new THREE.TextureLoader();
@@ -372,14 +374,39 @@ function loadTextureAsync(url) {
     });
 }
 
-// Load all textures and store them in textureList asynchronously
+// Function to fetch the image list and load textures
 async function fetchImageList() { 
     const response = await fetch('/images/images.json');
     imgList = await response.json();
+
+    for (const img of imgList) {
+        const url = `images/${img}`;
+        try {
+            const texture = await loadTextureAsync(url);
+            textureList.push(texture);
+            console.log(`Loaded texture for ${img}`);
+        } catch (error) {
+            console.error(`Error loading texture for ${img}:`, error);
+        }
+    }
+
+    // Set totalPictures and pass textureList to createSceneObjects
     totalPictures = imgList.length;
-    createSceneObjects();
+    createSceneObjects(true);
 }
+
 await fetchImageList()
+
+// Function to remove the loading screen element
+function removeLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    if (loadingScreen) {
+        loadingScreen.parentNode.removeChild(loadingScreen);
+        console.log('Loading screen removed');
+    } else {
+        console.log('Loading screen element not found');
+    }
+}
 
 //#region Renderer
 const renderer = new THREE.WebGLRenderer({
@@ -468,6 +495,23 @@ function moveDisplayPicture(reverse) {
         delay: reverse ? parameters.animationSpeed*0.5 : 0
     })
     setTimeout(() => isAnimating = false, parameters.animationSpeed*1000)
+}
+
+function moveCameraIn(yMax) {
+    const endPosition = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z);
+    const startPositionZ = calcObjectDistance(sizes.viewportWidth, yMax, 100)*10
+    const startPositionY = (yMax-parameters.offset)*0.5
+    camera.position.z = startPositionZ
+    camera.position.y = startPositionY
+    gsap.to(camera.position, { 
+        duration: parameters.animationSpeed*2,
+        y: endPosition.y,
+        z: endPosition.z,
+        ease:  "power4.out",
+        delay: parameters.animationSpeed*2,
+        onStart: () => {  removeLoadingScreen(); },
+        onComplete: () => { displayPicture.visible = true; }
+    })
 }
 
 //#region Events
