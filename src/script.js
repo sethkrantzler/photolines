@@ -380,7 +380,7 @@ async function fetchImageList() {
     imgList = await response.json();
 
     for (const img of imgList) {
-        const url = `images/${img}`;
+        const url = `images/thumbnails/${img}`;
         try {
             const texture = await loadTextureAsync(url);
             textureList.push(texture);
@@ -411,11 +411,9 @@ function removeLoadingScreen() {
 //#region Renderer
 const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
-    alpha: true
 })
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-renderer.setClearAlpha(0)
 
 //#region Animate
 const clock = new THREE.Clock()
@@ -547,27 +545,6 @@ let scrollY = window.scrollY
 const cursor = {}
 cursor.x = 0
 cursor.y = 0
-tick()
-
-function onTouchStart(event) {
-    startTime = Date.now()
-    touchStartX = event.touches[0].clientX;
-    touchStartY = event.touches[0].clientY;
-}
-
-function onTouchEnd(event) {
-    const touchEndX = event.changedTouches[0].clientX;
-    const touchEndY = event.changedTouches[0].clientY;
-
-    const deltaX = touchEndX - touchStartX;
-    const deltaY = touchEndY - touchStartY;
-    const time = Date.now()-startTime
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
-    if ((time < 300 && distance < 2) || selectedPicture) {
-        onMouseClick(event);
-    }
-}
 
 function onMouseDown(event) {
     startTime = Date.now()
@@ -593,7 +570,7 @@ let initialMouseY = null;
 let isDragging = false;
 // Function to handle mouse down event
 function onMouseScrollDown(event) {
-    if (selectedPicture) return
+    if (selectedPicture) return;
     initialMouseY = event.clientY; // Store the initial mouse position
     isDragging = true; // Set dragging flag to true
 }
@@ -619,15 +596,18 @@ function onMouseScrollUp(event) {
 
 let initialTouchY = null;
 
-// Function to handle touch start event
-function onScrollStart(event) {
-    if (selectedPicture) return
-    initialTouchY = event.touches[0].clientY; // Store the initial touch position
+function onTouchStart(event) {
+    startTime = Date.now();
+    touchStartX = event.touches[0].clientX;
+    touchStartY = event.touches[0].clientY;
+
+    if (!selectedPicture) {
+        initialTouchY = touchStartY; // Store the initial touch position for scroll
+    }
 }
 
-// Function to handle touch move event
-function onScrollMove(event) {
-    if (initialTouchY !== null) {
+function onTouchMove(event) {
+    if (initialTouchY !== null && !selectedPicture) {
         const touchY = event.touches[0].clientY; // Current touch position
         const deltaY = touchY - initialTouchY; // Change in touch position
 
@@ -639,17 +619,29 @@ function onScrollMove(event) {
     }
 }
 
-// Function to handle touch end event
-function onScrollEnd(event) {
+function onTouchEnd(event) {
+    const touchEndX = event.changedTouches[0].clientX;
+    const touchEndY = event.changedTouches[0].clientY;
+
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+    const time = Date.now() - startTime;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+    if ((time < 300 && distance < 2) || selectedPicture) {
+        onMouseClick(event);
+    }
+
     initialTouchY = null; // Reset the initial touch position
 }
 
+function isMobileDevice() {
+    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
 
- if (/Mobi|Android/i.test(navigator.userAgent)) {
-    window.addEventListener('touchstart', onScrollStart, false);
-    window.addEventListener('touchmove', onScrollMove, false);
-    window.addEventListener('touchend', onScrollEnd, false);
+if (isMobileDevice()) {
     window.addEventListener('touchstart', onTouchStart, false);
+    window.addEventListener('touchmove', onTouchMove, false);
     window.addEventListener('touchend', onTouchEnd, false);
 } else {
     window.addEventListener('mousedown', onMouseScrollDown, false);
@@ -658,4 +650,4 @@ function onScrollEnd(event) {
     window.addEventListener('mousedown', onMouseDown, false);
     window.addEventListener('mouseup', onMouseUp, false);
 }
-    
+tick()
