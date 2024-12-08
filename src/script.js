@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { RGBELoader } from 'three/examples/jsm/Addons.js'
 import GUI from 'lil-gui'
 import gsap from 'gsap'
-import { OrbitControls } from 'three/examples/jsm/Addons.js'
+
 /**
  * Debug
  */
@@ -395,7 +395,7 @@ async function fetchImageList() {
     createSceneObjects(true);
 }
 
-await fetchImageList()
+fetchImageList()
 
 // Function to remove the loading screen element
 function removeLoadingScreen() {
@@ -548,16 +548,6 @@ const cursor = {}
 cursor.x = 0
 cursor.y = 0
 tick()
-window.addEventListener('scroll', () =>
-    {
-        scrollY = window.scrollY
-    })
-// window.addEventListener('mousemove', (event) =>
-//     {
-//         cursor.x = event.clientX / sizes.width - 0.5
-//         cursor.y = event.clientY / sizes.height - 0.5
-//     })
-
 
 function onTouchStart(event) {
     startTime = Date.now()
@@ -654,19 +644,17 @@ function onScrollEnd(event) {
     initialTouchY = null; // Reset the initial touch position
 }
 
- // Event listener for touch move on mobile
- window.addEventListener('touchstart', onScrollStart, false);
- window.addEventListener('touchmove', onScrollMove, false);
- window.addEventListener('touchend', onScrollEnd, false);
- // Event listeners for drag events
- window.addEventListener('mousedown', onMouseScrollDown, false);
- window.addEventListener('mousemove', onMouseScrollMove, false);
- window.addEventListener('mouseup', onMouseScrollUp, false);
 
  if (/Mobi|Android/i.test(navigator.userAgent)) {
+    window.addEventListener('touchstart', onScrollStart, false);
+    window.addEventListener('touchmove', onScrollMove, false);
+    window.addEventListener('touchend', onScrollEnd, false);
     window.addEventListener('touchstart', onTouchStart, false);
     window.addEventListener('touchend', onTouchEnd, false);
 } else {
+    window.addEventListener('mousedown', onMouseScrollDown, false);
+    window.addEventListener('mousemove', onMouseScrollMove, false);
+    window.addEventListener('mouseup', onMouseScrollUp, false);
     window.addEventListener('mousedown', onMouseDown, false);
     window.addEventListener('mouseup', onMouseUp, false);
 }

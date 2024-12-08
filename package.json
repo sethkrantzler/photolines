@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "resize": "node prepareImages.cjs"
+    "build": "vite build && echo www.sethlovestotalk.com > dist/CNAME",
+    "deploy": "gh-pages -d dist",
+    "prepImages": "node prepareImages.cjs"
   },
   "devDependencies": {
     "vite": "^5.3.3",
@@ -14,6 +15,7 @@
   },
   "dependencies": {
     "fluent-ffmpeg": "^2.1.3",
+    "gh-pages": "^6.2.0",
     "gsap": "^3.12.5",
     "lil-gui": "^0.19.2",
     "three": "^0.166.1"
