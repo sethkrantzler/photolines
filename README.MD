@@ -1,12 +1,14 @@
 MUST DO
--Add Next/Close/Prev buttons to bottom of display frame
+-Add Next/Close/Prev buttons 
 -Clothespin model
--loading spinner
+-loading spinner improvements
+-category view
+-some way of sorting gallery view
 
 NICE TO HAVE
 -What is the background
+-Group wires by category and scroll wires
 -Scroll Bar HUD?
--Scroll damping
 
 IDEAS
 -Spotlight vs dark room effect?

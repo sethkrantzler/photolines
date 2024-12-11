@@ -3,9 +3,10 @@ const fs = require('fs');
 const path = require('path');
 
 // Define the directories
-const inputDir = path.join(__dirname, './static/images');
+const inputDir = path.join(__dirname, './static/images/originals');
 const thumbnailDir = path.join(__dirname, './static/images/thumbnails');
 const compressedDir = path.join(__dirname, './static/images/compressed');
+const jsonFile = path.join(__dirname, './static/images/images.json');
 
 // Ensure the output directories exist and are empty
 const ensureEmptyDir = (dir) => {
@@ -100,27 +101,64 @@ function isImageFile(file) {
     return validExtensions.includes(ext);
 }
 
-// Read all files in the input directory
-fs.readdir(inputDir, (err, files) => {
+// Read all folders in the input directory
+fs.readdir(inputDir, (err, folders) => {
     if (err) {
         console.error('Error reading input directory:', err);
         return;
     }
 
-    files.forEach(file => {
-        if (!isImageFile(file)) {
-            console.log(`Skipping non-image file: ${file}`);
-            return;
+    const imgList = [];
+    const categoriesList = {};
+
+    folders.forEach(folder => {
+        const folderPath = path.join(inputDir, folder);
+        if (fs.lstatSync(folderPath).isDirectory()) {
+            // Read all files in the folder
+            fs.readdir(folderPath, (err, files) => {
+                if (err) {
+                    console.error(`Error reading folder ${folder}:`, err);
+                    return;
+                }
+
+                categoriesList[folder] = [];
+
+                files.forEach(file => {
+                    if (isImageFile(file)) {
+                        const inputFile = path.join(folderPath, file);
+                        const thumbnailFile = path.join(thumbnailDir, file);
+                        const compressedFile = path.join(compressedDir, file);
+
+                        // Resize the image
+                        resizeImage(inputFile, thumbnailFile);
+
+                        // Compress the original image
+                        compressImage(inputFile, compressedFile);
+
+                        // Keep track of the image names and categories
+                        imgList.push(file);
+                        categoriesList[folder].push(file);
+                    } else {
+                        console.log(`Skipping non-image file: ${file}`);
+                    }
+                });
+
+                // Write the JSON file after processing each folder
+                const jsonData = {
+                    imgList: imgList,
+                    categoriesList: categoriesList
+                };
+
+                console.log(jsonData);
+
+                fs.writeFile(jsonFile, JSON.stringify(jsonData, null, 2), (err) => {
+                    if (err) {
+                        console.error('Error writing JSON file:', err);
+                    } else {
+                        console.log('Updated images.json with new data.');
+                    }
+                });
+            });
         }
-
-        const inputFile = path.join(inputDir, file);
-        const thumbnailFile = path.join(thumbnailDir, file);
-        const compressedFile = path.join(compressedDir, file);
-
-        // Resize the image
-        resizeImage(inputFile, thumbnailFile);
-        
-        // Compress the original image
-        compressImage(inputFile, compressedFile);
     });
 });

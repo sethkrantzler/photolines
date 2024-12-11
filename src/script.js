@@ -23,6 +23,7 @@ let displayFrame = undefined
 let lastSelectedPicturePos = undefined
 let isAnimating = false
 let isLoading = true;
+let cameraMaxY, cameraMinY = undefined;
 //#endregion
 
 const parameters = {
@@ -344,9 +345,11 @@ function createSceneObjects(iniitialLoad = false) {
         objectsGroup.add(group);
     }
 
+    cameraMaxY = 0;
+    cameraMinY = parameters.offset - ((totalWires-1) * parameters.separation);
     scene.add(objectsGroup);
     if (iniitialLoad) {
-        moveCameraIn(parameters.offset - ((totalWires-1) * parameters.separation))
+        moveCameraIn(cameraMaxY)
     };
 }
 
@@ -377,7 +380,8 @@ function loadTextureAsync(url) {
 // Function to fetch the image list and load textures
 async function fetchImageList() { 
     const response = await fetch('/images/images.json');
-    imgList = await response.json();
+    const imgData = await response.json();
+    imgList = imgData.imgList
 
     for (const img of imgList) {
         const url = `images/thumbnails/${img}`;
@@ -447,6 +451,7 @@ function pullPicture(picture) {
     selectedPicture = picture;
     updateDisplayPicture()
     lastSelectedPicturePos = new THREE.Vector3(picture.position.x, picture.position.y, picture.position.z)
+    stopCameraScroll()
     movePictureOut(picture, new THREE.Vector3(camera.position.z / 2,camera.position.y - sizes.viewportHeight,0))
     moveDisplayPicture(true)
 }
@@ -561,13 +566,21 @@ function onMouseUp(event) {
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     const time = Date.now()-startTime
 
-    if ((time < 300 || distance < 2) || selectedPicture) {
+    if ((time < 200 || distance < 4) || selectedPicture) {
         onMouseClick(event);
     }
 }
 
+// Global Variables
 let initialMouseY = null;
 let isDragging = false;
+let initialTouchY = null;
+let velocityY = 0;
+let damping = 0.9; // Adjust this factor to control the damping effect
+let scrollRate = 0.0075
+let animationFrameId = null;
+let isTouching = false;
+
 // Function to handle mouse down event
 function onMouseScrollDown(event) {
     if (selectedPicture) return;
@@ -582,10 +595,21 @@ function onMouseScrollMove(event) {
         const deltaY = mouseY - initialMouseY; // Change in mouse position
 
         // Adjust the camera position based on the change in mouse position
-        camera.position.y += deltaY * 0.01; // Adjust the 0.01 factor to control the scroll speed
+        camera.position.y += deltaY * scrollRate; // Adjust the 0.01 factor to control the scroll speed
 
         // Update the initial mouse position for the next move event
         initialMouseY = mouseY;
+
+        // Update velocity for deceleration
+        velocityY = deltaY * 0.01;
+
+        // Cancel any existing animation frame
+        if (animationFrameId !== null) {
+            cancelAnimationFrame(animationFrameId);
+        }
+
+        // Start the deceleration animation
+        animateDeceleration();
     }
 }
 
@@ -594,32 +618,46 @@ function onMouseScrollUp(event) {
     isDragging = false; // Reset the dragging flag
 }
 
-let initialTouchY = null;
-
+// Function to handle touch start event
 function onTouchStart(event) {
+    isTouching = true;
     startTime = Date.now();
     touchStartX = event.touches[0].clientX;
     touchStartY = event.touches[0].clientY;
 
     if (!selectedPicture) {
-        initialTouchY = touchStartY; // Store the initial touch position for scroll
+        initialTouchY = touchStartY; // Store the initial touch position
     }
 }
 
+// Function to handle touch move event
 function onTouchMove(event) {
     if (initialTouchY !== null && !selectedPicture) {
         const touchY = event.touches[0].clientY; // Current touch position
         const deltaY = touchY - initialTouchY; // Change in touch position
 
         // Adjust the camera position based on the change in touch position
-        camera.position.y += deltaY * 0.01; // Adjust the 0.01 factor to control the scroll speed
+        camera.position.y += deltaY * scrollRate; // Adjust the 0.01 factor to control the scroll speed
 
         // Update the initial touch position for the next move event
         initialTouchY = touchY;
+
+        // Update velocity for deceleration
+        velocityY = deltaY * 0.01;
+
+        // Cancel any existing animation frame
+        if (animationFrameId !== null) {
+            cancelAnimationFrame(animationFrameId);
+        }
+
+        // Start the deceleration animation
+        animateDeceleration();
     }
 }
 
+// Function to handle touch end event
 function onTouchEnd(event) {
+    isTouching = false;
     const touchEndX = event.changedTouches[0].clientX;
     const touchEndY = event.changedTouches[0].clientY;
 
@@ -627,13 +665,43 @@ function onTouchEnd(event) {
     const deltaY = touchEndY - touchStartY;
     const time = Date.now() - startTime;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    console.log(distance)
 
-    if ((time < 300 && distance < 2) || selectedPicture) {
+    if ((time < 100 || distance < 20) || selectedPicture) {
         onMouseClick(event);
     }
 
     initialTouchY = null; // Reset the initial touch position
 }
+
+// Function to handle deceleration animation
+function animateDeceleration() {
+    if ((!isDragging || !isTouching) && Math.abs(velocityY) > 0.001) {
+        // Apply damping to reduce velocity
+        velocityY *= damping;
+
+        // Adjust the camera position based on the velocity
+        camera.position.y += velocityY;
+        camera.position.y = Math.min(Math.max(camera.position.y, cameraMinY), cameraMaxY);
+
+        // Request the next animation frame
+        animationFrameId = requestAnimationFrame(animateDeceleration);
+    } else {
+        // Stop the animation if velocity is too low
+        velocityY = 0;
+        animationFrameId = null;
+    }
+}
+
+// Function to stop the camera scroll
+function stopCameraScroll() {
+    if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+        velocityY = 0;
+    }
+}
+
 
 function isMobileDevice() {
     return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);

@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build && echo www.sethlovestotalk.com > dist/CNAME",
     "deploy": "gh-pages -d dist",
-    "prepImages": "node prepareImages.cjs"
+    "update": "node prepareImages.cjs"
   },
   "devDependencies": {
     "vite": "^5.3.3",
