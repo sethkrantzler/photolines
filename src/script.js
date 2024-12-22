@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { RGBELoader } from 'three/examples/jsm/Addons.js'
 import GUI from 'lil-gui'
 import gsap from 'gsap'
+import { OrbitControls } from 'three/examples/jsm/Addons.js'
 
 /**
  * Debug
@@ -22,7 +23,6 @@ let displayImage = undefined
 let displayFrame = undefined
 let lastSelectedPicturePos = undefined
 let isAnimating = false
-let isLoading = true;
 let cameraMaxY, cameraMinY = undefined;
 //#endregion
 
@@ -41,21 +41,94 @@ const canvas = document.querySelector('canvas.webgl')
 // Scene
 const scene = new THREE.Scene({color: 'tan'})
 
-// Environment Map
-const rgbeLoader = new RGBELoader()
-rgbeLoader.load('./textures/environmentMap/2k.hdr', (environmentMap) =>
-{
-    environmentMap.mapping = THREE.EquirectangularReflectionMapping
+// // Environment Map
+// const rgbeLoader = new RGBELoader()
+// rgbeLoader.load('./textures/environmentMap/2k.hdr', (environmentMap) =>
+// {
+//     environmentMap.mapping = THREE.EquirectangularReflectionMapping
 
-    scene.background = environmentMap
-    scene.environment = environmentMap
+//     scene.background = environmentMap
+//     scene.environment = environmentMap
+// })
+
+/**
+ * Overlay
+ */
+const overlayGeometry = new THREE.PlaneGeometry(2, 2, 1, 1)
+const overlayMaterial = new THREE.ShaderMaterial({
+    transparent: true,
+    uniforms:
+    {
+        uAlpha: { value: 1 }
+    },
+    vertexShader: `
+        void main()
+        {
+            gl_Position = vec4(position, 1.0);
+        }
+    `,
+    fragmentShader: `
+        uniform float uAlpha;
+
+        void main()
+        {
+            gl_FragColor = vec4(0.0, 0.0, 0.0, uAlpha);
+        }
+    `
 })
+const overlay = new THREE.Mesh(overlayGeometry, overlayMaterial)
+scene.add(overlay)
+
 //#region Lights
 
-const directionalLight = new THREE.DirectionalLight('#ffffff', 3)
+function generateWall() {
+    const geometry = new THREE.PlaneGeometry(100, 100);
+    const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    const plane = new THREE.Mesh(geometry, material);
+    plane.receiveShadow = true; // Enable shadow receiving for the plane
+    plane.rotation.y = Math.PI / 2; // Rotate the plane to face the camera
+    plane.position.x = -0.5; // Position the plane behind the images
+    scene.add(plane);
+}
+
+// Call generateWall to add the background
+generateWall();
+
+const directionalLight = new THREE.DirectionalLight('#ffffff', 0.5)
 directionalLight.position.set(1, 1, 0)
 scene.add(directionalLight)
-//#region Texture
+
+// Create a spotlight
+const spotlightIntensity = 10;
+const spotlightDistance = 7.8;
+const spotlightAngle = 0.54;
+const spotlightPenumbra = 0.5;
+const spotlightDecay = 0.33;
+const spotLight = new THREE.SpotLight('#ffffff', spotlightIntensity, spotlightDistance, spotlightAngle, spotlightPenumbra, spotlightDecay);
+spotLight.position.set(0, 1, 0);
+spotLight.castShadow = true;
+spotLight.shadow.mapSize.width = 1024;
+spotLight.shadow.mapSize.height = 1024;
+scene.add(spotLight);
+scene.add(spotLight.target)
+
+// Add a spotlight helper to visualize the spotlight
+// const spotLightHelper = new THREE.SpotLightHelper(spotLight);
+// scene.add(spotLightHelper);
+
+// Add lil-gui controls
+const lightFolder = gui.addFolder('Spotlight Position');
+lightFolder.add(spotLight, 'intensity', 0, 100).name('Intensity');
+lightFolder.add(spotLight, 'distance', 0, 100).name('Distance');
+lightFolder.add(spotLight, 'angle', 0, Math.PI / 2).name('Angle');
+lightFolder.add(spotLight, 'penumbra', 0, 5).name('Penumbra');
+lightFolder.add(spotLight, 'decay', 0, 5).name('Decay');
+lightFolder.add(spotLight.position, 'x', -10, 10).name('X Position').onChange(() => spotLightHelper.update());
+lightFolder.add(spotLight.position, 'y', -10, 10).name('Y Position').onChange(() => spotLightHelper.update());
+lightFolder.add(spotLight.position, 'z', -10, 10).name('Z Position').onChange(() => spotLightHelper.update());
+lightFolder.open();
+
+//#region Loaders
 const textureLoader = new THREE.TextureLoader()
 
 //#region Sizes
@@ -153,6 +226,7 @@ cameraGroup.add(camera)
 
 cameraGroup.rotation.y = Math.PI / 2
 calcViewportDistance();
+spotLight.parent = camera;
 
 //#region Raycaster
 const raycaster = new THREE.Raycaster();
@@ -193,7 +267,7 @@ function createDisplayPicture() {
     displayFrame = new THREE.Mesh(rectGeometry, rectMaterial);
     displayFrame.name = 'frame'
     const imageGeometry = new THREE.PlaneGeometry(parameters.pictureSize / 2, parameters.pictureSize * 1);
-    const imageMaterial = new THREE.MeshStandardMaterial({ side: THREE.FrontSide, metalness: 0.25, roughness: 0.1 });
+    const imageMaterial = new THREE.MeshBasicMaterial({ side: THREE.FrontSide});
     displayImage = new THREE.Mesh(imageGeometry, imageMaterial);
     displayImage.name = 'picture'
     displayImage.position.z = 0.02
@@ -222,6 +296,7 @@ createDisplayPicture()
  */
 function createWireWithObjects(start, end) {
     const group = new THREE.Group();
+    group.castShadow = true;
 
     // Wire
     const wireMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
@@ -241,7 +316,8 @@ function createWireWithObjects(start, end) {
     const curve = new THREE.CatmullRomCurve3(curvePoints);
     const wireGeometry = new THREE.TubeGeometry(curve, wireSegments, parameters.wireThickness, 8, false);
     const wire = new THREE.Mesh(wireGeometry, wireMaterial);
-
+    wire.castShadow = true;
+    wire.receiveShadow = true;
     group.add(wire);
 
     // Spheres and Rectangles
@@ -293,6 +369,8 @@ function createWireWithObjects(start, end) {
         const frame = new THREE.Mesh(rectGeometry, rectMaterial);
         frame.name = 'frame'
         frame.position.z = 0.0199;
+        frame.castShadow = true;
+        frame.receiveShadow = true;
 
         // Image geometry and material
         const imageGeometry = new THREE.PlaneGeometry(width, height);
@@ -354,9 +432,9 @@ function createSceneObjects(iniitialLoad = false) {
 }
 
 // Update objects when GUI parameters change
-gui.onChange(() => {
-    createSceneObjects();
-});
+// gui.onChange(() => {
+//     createSceneObjects();
+// });
 
 
 //#region Image Loading
@@ -406,6 +484,7 @@ function removeLoadingScreen() {
     const loadingScreen = document.getElementById('loadingScreen');
     if (loadingScreen) {
         loadingScreen.parentNode.removeChild(loadingScreen);
+        gsap.to(overlayMaterial.uniforms.uAlpha, { duration: 0.5, value: 0 })
         console.log('Loading screen removed');
     } else {
         console.log('Loading screen element not found');
@@ -414,8 +493,10 @@ function removeLoadingScreen() {
 
 //#region Renderer
 const renderer = new THREE.WebGLRenderer({
-    canvas: canvas,
+    canvas: canvas
 })
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap; // You can choose the shadow map type
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
@@ -517,6 +598,10 @@ function moveCameraIn(yMax) {
     })
 }
 
+function isImageContainerIntersect(intersect) {
+    return intersect.object.parent?.name?.includes('imageContainer');
+}
+
 //#region Events
 function onMouseClick(event) {
     // Check if the event is a touch event
@@ -535,13 +620,14 @@ function onMouseClick(event) {
 
     // Calculate objects intersecting the raycaster
     const intersects = raycaster.intersectObjects(scene.children);
+    const imageContainerIntersects = intersects.filter(isImageContainerIntersect);
 
     // If there's an intersection, call update State
-    if (intersects.length > 0 && intersects[0].object.parent?.name?.includes('imageContainer')) {
+    if (imageContainerIntersects.length > 0) {
         if (selectedPicture) {
             replacePicture(selectedPicture)
         } else {
-            pullPicture(intersects[0].object.parent)
+            pullPicture(imageContainerIntersects[0].object.parent)
         }
     }
 }
@@ -596,8 +682,8 @@ function onMouseScrollMove(event) {
 
         // Adjust the camera position based on the change in mouse position
         camera.position.y += deltaY * scrollRate; // Adjust the 0.01 factor to control the scroll speed
-
         // Update the initial mouse position for the next move event
+        updateSpotlightPosition(deltaY*scrollRate);
         initialMouseY = mouseY;
 
         // Update velocity for deceleration
@@ -638,6 +724,7 @@ function onTouchMove(event) {
 
         // Adjust the camera position based on the change in touch position
         camera.position.y += deltaY * scrollRate; // Adjust the 0.01 factor to control the scroll speed
+        updateSpotlightPosition(deltaY*scrollRate);
 
         // Update the initial touch position for the next move event
         initialTouchY = touchY;
@@ -683,6 +770,7 @@ function animateDeceleration() {
         // Adjust the camera position based on the velocity
         camera.position.y += velocityY;
         camera.position.y = Math.min(Math.max(camera.position.y, cameraMinY), cameraMaxY);
+        updateSpotlightPosition(velocityY);
 
         // Request the next animation frame
         animationFrameId = requestAnimationFrame(animateDeceleration);
@@ -691,6 +779,12 @@ function animateDeceleration() {
         velocityY = 0;
         animationFrameId = null;
     }
+}
+
+function updateSpotlightPosition(deltaY) {
+    if (camera.position.y + deltaY < cameraMinY || camera.position.y + deltaY > cameraMaxY) return;
+    spotLight.target.position.y += deltaY;
+    spotLight.target.position.y = Math.min(Math.max(spotLight.target.position.y, cameraMinY), cameraMaxY);
 }
 
 // Function to stop the camera scroll

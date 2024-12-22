@@ -1,9 +1,9 @@
 MUST DO
 -Add Next/Close/Prev buttons 
 -Clothespin model
--loading spinner improvements
 -category view
--some way of sorting gallery view
+-some way of switching to gallery view
+-dynamic wall height
 
 NICE TO HAVE
 -What is the background
@@ -11,4 +11,3 @@ NICE TO HAVE
 -Scroll Bar HUD?
 
 IDEAS
--Spotlight vs dark room effect?
