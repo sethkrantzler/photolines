@@ -109,7 +109,7 @@ fs.readdir(inputDir, (err, folders) => {
     }
 
     const imgList = [];
-    const categoriesList = {};
+    const categoryList = [];
 
     folders.forEach(folder => {
         const folderPath = path.join(inputDir, folder);
@@ -121,7 +121,10 @@ fs.readdir(inputDir, (err, folders) => {
                     return;
                 }
 
-                categoriesList[folder] = [];
+                const category = {
+                    categoryName: folder,
+                    images: []
+                };
 
                 files.forEach(file => {
                     if (isImageFile(file)) {
@@ -137,16 +140,19 @@ fs.readdir(inputDir, (err, folders) => {
 
                         // Keep track of the image names and categories
                         imgList.push(file);
-                        categoriesList[folder].push(file);
+                        category.images.push(file);
                     } else {
                         console.log(`Skipping non-image file: ${file}`);
                     }
                 });
 
+                // Add category to the categoryList array
+                categoryList.push(category);
+
                 // Write the JSON file after processing each folder
                 const jsonData = {
                     imgList: imgList,
-                    categoriesList: categoriesList
+                    categoryList: categoryList
                 };
 
                 console.log(jsonData);

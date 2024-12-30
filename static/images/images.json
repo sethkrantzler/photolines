@@ -1,58 +1,90 @@
 {
   "imgList": [
     "DSC01636.jpg",
+    "DSC00065.jpg",
     "DSC02365.jpg",
     "DSC03391.jpg",
     "DSC03534.jpg",
     "DSC03717.jpg",
+    "DSC00975.JPG",
     "DSC01520.jpg",
+    "DSC01654.jpg",
     "DSC03125.jpg",
     "DSC03649.jpg",
     "DSC03761.jpg",
     "DSC04123.jpg",
     "DSC04212.jpg",
-    "DSC00484.jpg",
-    "DSC04145.jpg",
-    "DSC09639.jpg",
     "DSC01599.jpg",
+    "DSC01671.JPG",
+    "DSC01689.JPG",
+    "DSC01930.JPG",
     "DSC03354.jpg",
     "DSC03421.jpg",
     "DSC09422.jpg",
+    "DSC00484.jpg",
+    "DSC00916.JPG",
+    "DSC04145.jpg",
+    "DSC09639.jpg",
     "DSC02768.jpg",
     "DSC04196.jpg"
   ],
-  "categoriesList": {
-    "animals": [
-      "DSC01636.jpg"
-    ],
-    "buildings": [
-      "DSC02365.jpg",
-      "DSC03391.jpg",
-      "DSC03534.jpg",
-      "DSC03717.jpg"
-    ],
-    "favorites": [
-      "DSC01520.jpg",
-      "DSC03125.jpg",
-      "DSC03649.jpg",
-      "DSC03761.jpg",
-      "DSC04123.jpg",
-      "DSC04212.jpg"
-    ],
-    "people": [
-      "DSC00484.jpg",
-      "DSC04145.jpg",
-      "DSC09639.jpg"
-    ],
-    "neon": [
-      "DSC01599.jpg",
-      "DSC03354.jpg",
-      "DSC03421.jpg",
-      "DSC09422.jpg"
-    ],
-    "street": [
-      "DSC02768.jpg",
-      "DSC04196.jpg"
-    ]
-  }
+  "categoryList": [
+    {
+      "categoryName": "animals",
+      "images": [
+        "DSC01636.jpg"
+      ]
+    },
+    {
+      "categoryName": "buildings",
+      "images": [
+        "DSC00065.jpg",
+        "DSC02365.jpg",
+        "DSC03391.jpg",
+        "DSC03534.jpg",
+        "DSC03717.jpg"
+      ]
+    },
+    {
+      "categoryName": "favorites",
+      "images": [
+        "DSC00975.JPG",
+        "DSC01520.jpg",
+        "DSC01654.jpg",
+        "DSC03125.jpg",
+        "DSC03649.jpg",
+        "DSC03761.jpg",
+        "DSC04123.jpg",
+        "DSC04212.jpg"
+      ]
+    },
+    {
+      "categoryName": "neon",
+      "images": [
+        "DSC01599.jpg",
+        "DSC01671.JPG",
+        "DSC01689.JPG",
+        "DSC01930.JPG",
+        "DSC03354.jpg",
+        "DSC03421.jpg",
+        "DSC09422.jpg"
+      ]
+    },
+    {
+      "categoryName": "people",
+      "images": [
+        "DSC00484.jpg",
+        "DSC00916.JPG",
+        "DSC04145.jpg",
+        "DSC09639.jpg"
+      ]
+    },
+    {
+      "categoryName": "street",
+      "images": [
+        "DSC02768.jpg",
+        "DSC04196.jpg"
+      ]
+    }
+  ]
 }

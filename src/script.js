@@ -15,6 +15,7 @@ let picturesLoaded = 0;
 let totalPictures = undefined;
 let imgList = [];
 let textureList = [];
+let categoryList = [];
 let touchStartX, touchStartY = undefined
 let startTime = undefined
 let selectedPicture = undefined
@@ -23,6 +24,7 @@ let displayImage = undefined
 let displayFrame = undefined
 let lastSelectedPicturePos = undefined
 let isAnimating = false
+let isGalleryViewEnabled = false;
 let cameraMaxY, cameraMinY = undefined;
 //#endregion
 
@@ -235,6 +237,7 @@ const mouse = new THREE.Vector2();
 // Controls
 // const controls = new OrbitControls(camera, canvas)
 // controls.enableDamping = true
+// controls.enableRotate = false
 
 //#region Wires
 
@@ -243,6 +246,7 @@ function calcWireLength() {
 }
 parameters.separation = 1.5;
 parameters.offset = 2.3;
+parameters.categoryWireSeparation = 2.25;
 parameters.wireThickness = 0.013;
 parameters.pictureSize = 1.2;
 parameters.pinSize = 0.02;
@@ -294,7 +298,7 @@ createDisplayPicture()
 /**
  * Create a wire with attached spheres and rectangles
  */
-function createWireWithObjects(start, end) {
+function createGalleryWireWithObjects(start, end) {
     const group = new THREE.Group();
     group.castShadow = true;
 
@@ -401,6 +405,110 @@ function createWireWithObjects(start, end) {
     return group;
 }
 
+/**
+ * Create a wire with attached spheres and rectangles
+ */
+function createCategoryWireWithObjects(textureList, start, end) {
+    const group = new THREE.Group();
+
+    // Wire
+    const wireMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+    const wireSegments = 200;
+    const curvePoints = [];
+
+    for (let i = 0; i <= wireSegments; i++) {
+        const t = i / wireSegments;
+        const x = THREE.MathUtils.lerp(start.x, end.x, t);
+        const z = THREE.MathUtils.lerp(start.z, end.z, t);
+
+        const midpoint = 0.5;
+        const y = start.y + parameters.tension * -1 * (1 - 4 * (t - midpoint) * (t - midpoint));
+        curvePoints.push(new THREE.Vector3(x, y, z));
+    }
+
+    const curve = new THREE.CatmullRomCurve3(curvePoints);
+    const wireGeometry = new THREE.TubeGeometry(curve, wireSegments, parameters.wireThickness, 8, false);
+    const wire = new THREE.Mesh(wireGeometry, wireMaterial);
+    wire.name = "categoryWire"
+
+    group.add(wire);
+
+    // Spheres and Rectangles
+    const distance = Math.sqrt((end.x - start.x) ** 2 + (end.z - start.z) ** 2);
+    const numRectangles = Math.floor(distance / parameters.pictureSize);
+
+    for (let i = 0; i < textureList.length; i++) {
+        const picture = new THREE.Group();
+        const texture = textureList[i];
+        picture.name = `picture-${picturesLoaded}`;
+        picturesLoaded++
+        // Calculate the parameter t for equal spacing along the curve
+        const t = (1 - (i*parameters.pictureSize / distance)) - (1 / (2*numRectangles));
+        const pos = curve.getPointAt(t);
+        console.log(`The t for picture ${i} is ${t} with pos ${JSON.stringify(pos)}`)
+
+        
+        // Sphere
+        const sphereGeometry = new THREE.SphereGeometry(parameters.pinSize, 16, 16);
+        const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        sphere.position.set(pos.x, pos.y, pos.z);
+        sphere.position.x += 0.02
+
+        // Image 
+        const imageContainer = new THREE.Group();
+
+        const imgWidth = texture.image.width;
+        const imgHeight = texture.image.height;
+        let width, height;
+
+        // Adjust geometry dimensions based on image size
+        if (imgWidth > imgHeight) {
+            width = parameters.pictureSize * 0.95;
+            height = (imgHeight / imgWidth) * width;
+        } else {
+            height = parameters.pictureSize * 0.95;
+            width = (imgWidth / imgHeight) * height;
+        }
+
+
+        // Frame
+        imageContainer.name = 'imageContainer'
+        const rectGeometry = new THREE.PlaneGeometry(width + parameters.framePadding, height + parameters.framePadding);
+        const rectMaterial = new THREE.MeshBasicMaterial({ color: 'white', side: THREE.DoubleSide });
+        const frame = new THREE.Mesh(rectGeometry, rectMaterial);
+        frame.name = 'frame'
+        frame.position.z = 0.0199;
+
+        // Image geometry and material
+        const imageGeometry = new THREE.PlaneGeometry(width, height);
+        texture.colorSpace = THREE.SRGBColorSpace
+        const imageMaterial = new THREE.MeshStandardMaterial({
+            map: texture,
+            metalness: 0.5,
+            roughness: 0.1,
+        });
+        const image = new THREE.Mesh(imageGeometry, imageMaterial);
+        image.name = 'picture'+(picturesLoaded);
+        image.position.z = 0.02;
+
+        // Add the image to the scene or group
+        imageContainer.add(image);
+            // Image Container
+        imageContainer.add(frame) 
+        imageContainer.position.set(pos.x, pos.y - 0.5*height, pos.z);
+        imageContainer.rotation.x = THREE.MathUtils.degToRad(Math.random()*20-10);
+        // Rotate y by 90 degrees
+        imageContainer.rotation.y = Math.PI / 2;
+
+        picture.add(sphere);
+        picture.add(imageContainer);
+        group.add(picture);
+    }
+
+    return group;
+}
+
 let objectsGroup = new THREE.Group();
 function createSceneObjects(iniitialLoad = false) {
     scene.remove(objectsGroup);
@@ -408,27 +516,47 @@ function createSceneObjects(iniitialLoad = false) {
 
     // Calculate the number of pictures each wire can hold
     const picturesPerWire = Math.floor(2 * parameters.wireLength / parameters.pictureSize);
+    const totalWires = isGalleryViewEnabled ? Math.ceil(totalPictures / picturesPerWire) : categoryList.length;
 
-    // Calculate the total number of wires needed
-    const totalWires = Math.ceil(totalPictures / picturesPerWire);
+    if (isGalleryViewEnabled) {
+        createGalleryWires(totalWires);
+    } else {
+        createCategoryWires();
+    }
 
+    cameraMaxY = 0;
+    cameraMinY = isGalleryViewEnabled ? parameters.offset - ((totalWires-1) * parameters.separation) : parameters.offset - ((totalWires-1) * parameters.categoryWireSeparation)
+    scene.add(objectsGroup);
+    if (iniitialLoad) {
+        moveCameraIn(cameraMinY)
+    };
+}
+
+function createGalleryWires(wires) {
     // Create the necessary number of wires
-    for (let i = 0; i < totalWires; i++) {
+    for (let i = 0; i < wires; i++) {
         // Calculate yPosition to place the first wire at the top of the screen and then the other wires below it
         const yPosition = parameters.offset - (i * parameters.separation);
-        const group = createWireWithObjects(
+        const group = createGalleryWireWithObjects(
             new THREE.Vector3(0, yPosition, -parameters.wireLength),
             new THREE.Vector3(0, yPosition, parameters.wireLength)
         );
         objectsGroup.add(group);
     }
+}
 
-    cameraMaxY = 0;
-    cameraMinY = parameters.offset - ((totalWires-1) * parameters.separation);
-    scene.add(objectsGroup);
-    if (iniitialLoad) {
-        moveCameraIn(cameraMaxY)
-    };
+function createCategoryWires() {
+    categoryList.forEach((category, i) => {
+        // Calculate yPosition to place the first wire at the top of the screen and then the other wires below it
+        const yPosition = parameters.offset - (i * parameters.categoryWireSeparation);
+        const categoryWireLength = parameters.pictureSize * category.images.length
+        const categoryTextures = category.images.map((imgName) => textureList[imgList.findIndex((img) => img === imgName)]);
+        const group = createCategoryWireWithObjects(categoryTextures,
+            new THREE.Vector3(0, yPosition, -(Math.max(categoryWireLength, parameters.wireLength))),
+            new THREE.Vector3(0, yPosition, parameters.wireLength)
+        );
+        objectsGroup.add(group);
+    })
 }
 
 // Update objects when GUI parameters change
@@ -460,6 +588,7 @@ async function fetchImageList() {
     const response = await fetch('/images/images.json');
     const imgData = await response.json();
     imgList = imgData.imgList
+    categoryList = imgData.categoryList
 
     for (const img of imgList) {
         const url = `images/thumbnails/${img}`;
@@ -533,7 +662,7 @@ function pullPicture(picture) {
     updateDisplayPicture()
     lastSelectedPicturePos = new THREE.Vector3(picture.position.x, picture.position.y, picture.position.z)
     stopCameraScroll()
-    movePictureOut(picture, new THREE.Vector3(camera.position.z / 2,camera.position.y - sizes.viewportHeight,0))
+    movePictureOut(picture, new THREE.Vector3(camera.position.z / 2, camera.position.y - sizes.viewportHeight, 0))
     moveDisplayPicture(true)
 }
 
@@ -559,13 +688,27 @@ function previousPicture(pictureGroup) {
 }
 
 function movePictureOut(picture, position) {
-    gsap.to(picture.position, { duration: parameters.animationSpeed, x: position.x, y: position.y, z: position.z, ease:'power1.in'})
-    gsap.to(picture.rotation, { duration: parameters.animationSpeed, x: 0, y: picture.rotation.y + (picture.position.z/8), ease:'power1.out'})
+    // Convert the current position to world coordinates
+    const worldPosition = new THREE.Vector3();
+    picture.getWorldPosition(worldPosition);
+
+    // Determine the new world position (under the camera)
+    const newWorldPosition = new THREE.Vector3(position.x, position.y, 0);
+
+    // Convert the new world position back to the group's local coordinates
+    picture.parent.worldToLocal(newWorldPosition);
+
+    // Tween the picture to the new local position
+    gsap.to(picture.position, { duration: parameters.animationSpeed, x: newWorldPosition.x, y: newWorldPosition.y, z: newWorldPosition.z, ease: 'power1.in' });
+
+    // Adjust the rotation based on the new position
+    gsap.to(picture.rotation, { duration: parameters.animationSpeed, x: 0, y: picture.rotation.y + ((camera.position.z - worldPosition.z) / 8), ease: 'power3.in' });
 }
+
 
 function movePictureIn(picture, position) {
     gsap.to(picture.position, { duration: parameters.animationSpeed, x: position.x, y: position.y, z: position.z, delay: parameters.animationSpeed*0.5, ease:'power1.out'})
-    gsap.to(picture.rotation, { duration: parameters.animationSpeed, x: THREE.MathUtils.degToRad(Math.random()*20-10), y: Math.PI / 2, delay: parameters.animationSpeed*0.5, ease:'power1.in'})
+    gsap.to(picture.rotation, { duration: parameters.animationSpeed, x: THREE.MathUtils.degToRad(Math.random()*20-10), y: Math.PI / 2, delay: parameters.animationSpeed*0.5, ease:'power3.out'})
 }
 
 function moveDisplayPicture(reverse) {
@@ -603,7 +746,7 @@ function isImageContainerIntersect(intersect) {
 }
 
 //#region Events
-function onMouseClick(event) {
+function onClickEnd(event) {
     // Check if the event is a touch event
     if (event.type === 'touchend') {
         // Use the first touch point from changedTouches
@@ -623,7 +766,7 @@ function onMouseClick(event) {
     const imageContainerIntersects = intersects.filter(isImageContainerIntersect);
 
     // If there's an intersection, call update State
-    if (imageContainerIntersects.length > 0) {
+    if (imageContainerIntersects.length > 0 && !isAnimating) {
         if (selectedPicture) {
             replacePicture(selectedPicture)
         } else {
@@ -632,18 +775,93 @@ function onMouseClick(event) {
     }
 }
 
-let scrollY = window.scrollY
+let prevMouse = undefined;
+let scrollDirection = undefined;
+function onClickDrag(event) {
+    if (selectedPicture) return
+    // Determine the type of event and get the coordinates
+    let clientX, clientY;
+    if (event.type === 'touchmove') {
+        clientX = event.changedTouches[0].clientX;
+        clientY = event.changedTouches[0].clientY;
+    } else {
+        clientX = event.clientX;
+        clientY = event.clientY;
+    }
+    mouse.x = (clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+
+    if (prevMouse && isClicking && !scrollDirection) {
+        const deltaX = Math.abs(prevMouse.x - mouse.x);
+        const deltaY = Math.abs(prevMouse.y - mouse.y);
+
+        prevMouse = { x: mouse.x, y: mouse.y };
+        scrollDirection = deltaX > deltaY ? 'x' : 'y';
+    } else if (scrollDirection) {
+        if (scrollDirection === 'x') {
+            // Update the raycaster with the camera and mouse position
+            raycaster.setFromCamera(mouse, camera);
+    
+            // Calculate objects intersecting the raycaster
+            const intersects = raycaster.intersectObjects(scene.children);
+            console.log("drag in progress x");
+    
+            // If there's an intersection, call update State
+            if (intersects.length > 0 && intersects[0].object.parent?.name?.includes('imageContainer')) {
+                const deltaX = prevMouse.x - mouse.x;
+                prevMouse = { x: mouse.x, y: mouse.y };
+                const wire = intersects[0].object.parent.parent.parent
+                wire.position.z += deltaX * 2
+                // clamp wire position to some parameter
+            }
+        } else {
+            console.log("drag in progress y");
+            const movementY = event.type === 'touchmove' ? event.changedTouches[0].clientY : event.clientY
+            const deltaY = movementY - (initialTouchY !== null ? initialTouchY : initialMouseY);
+            if (event.type === 'touchmove') {
+                initialTouchY = movementY;
+            } else {
+                initialMouseY = movementY;
+            }
+    
+            velocityY = deltaY * 0.01;
+            if (animationFrameId !== null) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            animateDeceleration();
+        }
+    }
+    else {
+        prevMouse = { x: mouse.x, y: mouse.y };
+    }
+}
+// Global Variables
+let initialMouseY = null;
+let isClicking = false;
+let initialTouchY = null;
+let velocityY = 0;
+let damping = 0.975; // Adjust this factor to control the damping effect
+let animationFrameId = null;
+let isTouching = false;
 const cursor = {}
 cursor.x = 0
 cursor.y = 0
 
 function onMouseDown(event) {
+    isClicking = true;
     startTime = Date.now()
     touchStartX = event.clientX;
     touchStartY = event.clientY;
+
+    if (!selectedPicture) {
+        initialMouseY = touchStartY; // Store the initial touch position
+    }
 }
 
 function onMouseUp(event) {
+    isClicking = false;
+    scrollDirection = undefined;
+    prevMouse = undefined;
     const mouseEndX = event.clientX;
     const mouseEndY = event.clientY;
 
@@ -652,61 +870,17 @@ function onMouseUp(event) {
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     const time = Date.now()-startTime
 
-    if ((time < 200 || distance < 4) || selectedPicture) {
-        onMouseClick(event);
+    if ((time < 50 || distance < 4) || (selectedPicture && time < 100)) {
+        onClickEnd(event);
     }
+
+    initialMouseY = null; // Reset the initial touch position
 }
 
-// Global Variables
-let initialMouseY = null;
-let isDragging = false;
-let initialTouchY = null;
-let velocityY = 0;
-let damping = 0.9; // Adjust this factor to control the damping effect
-let scrollRate = 0.0075
-let animationFrameId = null;
-let isTouching = false;
-
-// Function to handle mouse down event
-function onMouseScrollDown(event) {
-    if (selectedPicture) return;
-    initialMouseY = event.clientY; // Store the initial mouse position
-    isDragging = true; // Set dragging flag to true
-}
-
-// Function to handle mouse move event
-function onMouseScrollMove(event) {
-    if (isDragging) {
-        const mouseY = event.clientY; // Current mouse position
-        const deltaY = mouseY - initialMouseY; // Change in mouse position
-
-        // Adjust the camera position based on the change in mouse position
-        camera.position.y += deltaY * scrollRate; // Adjust the 0.01 factor to control the scroll speed
-        // Update the initial mouse position for the next move event
-        updateSpotlightPosition(deltaY*scrollRate);
-        initialMouseY = mouseY;
-
-        // Update velocity for deceleration
-        velocityY = deltaY * 0.01;
-
-        // Cancel any existing animation frame
-        if (animationFrameId !== null) {
-            cancelAnimationFrame(animationFrameId);
-        }
-
-        // Start the deceleration animation
-        animateDeceleration();
-    }
-}
-
-// Function to handle mouse up event
-function onMouseScrollUp(event) {
-    isDragging = false; // Reset the dragging flag
-}
 
 // Function to handle touch start event
 function onTouchStart(event) {
-    isTouching = true;
+    isClicking = true;
     startTime = Date.now();
     touchStartX = event.touches[0].clientX;
     touchStartY = event.touches[0].clientY;
@@ -716,35 +890,12 @@ function onTouchStart(event) {
     }
 }
 
-// Function to handle touch move event
-function onTouchMove(event) {
-    if (initialTouchY !== null && !selectedPicture) {
-        const touchY = event.touches[0].clientY; // Current touch position
-        const deltaY = touchY - initialTouchY; // Change in touch position
-
-        // Adjust the camera position based on the change in touch position
-        camera.position.y += deltaY * scrollRate; // Adjust the 0.01 factor to control the scroll speed
-        updateSpotlightPosition(deltaY*scrollRate);
-
-        // Update the initial touch position for the next move event
-        initialTouchY = touchY;
-
-        // Update velocity for deceleration
-        velocityY = deltaY * 0.01;
-
-        // Cancel any existing animation frame
-        if (animationFrameId !== null) {
-            cancelAnimationFrame(animationFrameId);
-        }
-
-        // Start the deceleration animation
-        animateDeceleration();
-    }
-}
 
 // Function to handle touch end event
 function onTouchEnd(event) {
-    isTouching = false;
+    isClicking = false;
+    scrollDirection = undefined;
+    prevMouse = undefined;
     const touchEndX = event.changedTouches[0].clientX;
     const touchEndY = event.changedTouches[0].clientY;
 
@@ -754,8 +905,8 @@ function onTouchEnd(event) {
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     console.log(distance)
 
-    if ((time < 100 || distance < 20) || selectedPicture) {
-        onMouseClick(event);
+    if ((time < 100 && distance < 5) || (selectedPicture && time < 100)) {
+        onClickEnd(event);
     }
 
     initialTouchY = null; // Reset the initial touch position
@@ -763,7 +914,7 @@ function onTouchEnd(event) {
 
 // Function to handle deceleration animation
 function animateDeceleration() {
-    if ((!isDragging || !isTouching) && Math.abs(velocityY) > 0.001) {
+    if ((!isClicking || !isTouching) && Math.abs(velocityY) > 0.001) {
         // Apply damping to reduce velocity
         velocityY *= damping;
 
@@ -802,14 +953,13 @@ function isMobileDevice() {
 }
 
 if (isMobileDevice()) {
+    damping = 0.95; // Adjust this factor to control the damping effect
     window.addEventListener('touchstart', onTouchStart, false);
-    window.addEventListener('touchmove', onTouchMove, false);
+    window.addEventListener('touchmove', onClickDrag, false);
     window.addEventListener('touchend', onTouchEnd, false);
 } else {
-    window.addEventListener('mousedown', onMouseScrollDown, false);
-    window.addEventListener('mousemove', onMouseScrollMove, false);
-    window.addEventListener('mouseup', onMouseScrollUp, false);
     window.addEventListener('mousedown', onMouseDown, false);
+    window.addEventListener('mousemove', onClickDrag, false);
     window.addEventListener('mouseup', onMouseUp, false);
 }
 tick()
