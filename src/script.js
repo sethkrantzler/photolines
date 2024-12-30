@@ -447,7 +447,7 @@ function createSceneObjects(iniitialLoad = false) {
     }
 
     cameraMaxY = 0;
-    cameraMinY = parameters.offset - ((totalWires-1) * parameters.separation);
+    cameraMinY = isGalleryViewEnabled ? parameters.offset - ((totalWires-1) * parameters.separation) : parameters.offset - ((totalWires-1) * parameters.categoryWireSeparation)
     scene.add(objectsGroup);
     if (iniitialLoad) {
         moveCameraIn(cameraMinY)
@@ -640,7 +640,7 @@ function moveDisplayPicture(reverse) {
         ease:  reverse ? "power4.out" : "power4.in",
         delay: reverse ? parameters.animationSpeed*0.5 : 0
     })
-    setTimeout(() => isAnimating = false, parameters.animationSpeed*1000*1.5)
+    setTimeout(() => isAnimating = false, parameters.animationSpeed*1000)
 }
 
 function moveCameraIn(yMax) {
@@ -681,10 +681,10 @@ function onClickEnd(event) {
 
     // If there's an intersection, call update State
     if (intersects.length > 0 && intersects[0].object.parent?.name?.includes('imageContainer') && !isAnimating) {
-        if (selectedPicture) {
-            replacePicture(selectedPicture)
-        } else {
+        if (!selectedPicture) {
             pullPicture(intersects[0].object.parent)
+        } else if (displayPicture === intersects[0].object.parent) {
+            replacePicture(selectedPicture)
         }
     }
 }
@@ -692,6 +692,7 @@ function onClickEnd(event) {
 let prevMouse = undefined;
 let scrollDirection = undefined;
 function onClickDrag(event) {
+    if (selectedPicture) return
     // Determine the type of event and get the coordinates
     let clientX, clientY;
     if (event.type === 'touchmove') {
@@ -724,7 +725,7 @@ function onClickDrag(event) {
                 const deltaX = prevMouse.x - mouse.x;
                 prevMouse = { x: mouse.x, y: mouse.y };
                 const wire = intersects[0].object.parent.parent.parent
-                wire.position.z += deltaX
+                wire.position.z += deltaX * 2
                 // clamp wire position to some parameter
             }
         } else {
@@ -753,7 +754,7 @@ let initialMouseY = null;
 let isClicking = false;
 let initialTouchY = null;
 let velocityY = 0;
-let damping = 0.9; // Adjust this factor to control the damping effect
+let damping = 0.975; // Adjust this factor to control the damping effect
 let animationFrameId = null;
 let isTouching = false;
 const cursor = {}
@@ -783,7 +784,7 @@ function onMouseUp(event) {
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     const time = Date.now()-startTime
 
-    if ((time < 50 || distance < 4) || selectedPicture) {
+    if ((time < 50 || distance < 4) || (selectedPicture && time < 100)) {
         onClickEnd(event);
     }
 
@@ -818,7 +819,7 @@ function onTouchEnd(event) {
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     console.log(distance)
 
-    if ((time < 100 || distance < 10) || selectedPicture) {
+    if ((time < 100 && distance < 5) || (selectedPicture && time < 100)) {
         onClickEnd(event);
     }
 
@@ -859,6 +860,7 @@ function isMobileDevice() {
 }
 
 if (isMobileDevice()) {
+    damping = 0.95; // Adjust this factor to control the damping effect
     window.addEventListener('touchstart', onTouchStart, false);
     window.addEventListener('touchmove', onClickDrag, false);
     window.addEventListener('touchend', onTouchEnd, false);
