@@ -8,7 +8,7 @@ import { OrbitControls } from 'three/examples/jsm/Addons.js'
  * Debug
  */
 const gui = new GUI()
-gui.hide()
+//gui.hide()
 
 //#region Variables
 let picturesLoaded = 0;
@@ -103,8 +103,8 @@ scene.add(directionalLight)
 // Create a spotlight
 const spotlightIntensity = 10;
 const spotlightDistance = 7.8;
-const spotlightAngle = 0.33;
-const spotlightPenumbra = 0.5;
+const spotlightAngle = 0.4;
+const spotlightPenumbra = 0.3;
 const spotlightDecay = 0.33;
 const spotLight = new THREE.SpotLight('#ffffff', spotlightIntensity, spotlightDistance, spotlightAngle, spotlightPenumbra, spotlightDecay);
 spotLight.position.set(-0.5, 1, 0);
