@@ -252,6 +252,7 @@ parameters.pictureSize = 1.2;
 parameters.pinSize = 0.02;
 parameters.tension = 0.4;
 parameters.wireLength = calcWireLength();
+parameters.cameraLookRate = 0.015;
 
 // GUI Setup
 gui.add(parameters, 'separation', -5, 5, 0.1).name('Separation');
@@ -526,7 +527,7 @@ function createSceneObjects(iniitialLoad = false) {
     }
 
     cameraMaxY = 0;
-    cameraMinY = isGalleryViewEnabled ? parameters.offset - ((totalWires-1) * parameters.separation) : parameters.offset - ((totalWires-1) * parameters.categoryWireSeparation)
+    cameraMinY = isGalleryViewEnabled ? parameters.offset - ((totalWires-1) * parameters.separation) : -((totalWires-1) * parameters.categoryWireSeparation)
     scene.add(objectsGroup);
     if (iniitialLoad) {
         moveCameraIn(cameraMinY)
@@ -641,15 +642,9 @@ const tick = () =>
     previousTime = elapsedTime
     // Render
 
-     const parallaxX = cursor.x * 0.5
-     const parallaxY = - cursor.y * 0.5
-
      if (!selectedPicture && !isAnimating) {
-        displayPicture.position.y = camera.position.y - sizes.viewportHeight
+        displayPicture.position.y = cameraGroup.position.y - sizes.viewportHeight
      }
-     
-    cameraGroup.position.x += (parallaxX - cameraGroup.position.x) * 5 * deltaTime
-    cameraGroup.position.y += (parallaxY - cameraGroup.position.y) * 5 * deltaTime
     renderer.render(scene, camera)
 
     // Call tick again on the next frame
@@ -662,8 +657,7 @@ function pullPicture(picture) {
     selectedPicture = picture;
     updateDisplayPicture()
     lastSelectedPicturePos = new THREE.Vector3(picture.position.x, picture.position.y, picture.position.z)
-    stopCameraScroll()
-    movePictureOut(picture, new THREE.Vector3(camera.position.z / 2, camera.position.y - sizes.viewportHeight, 0))
+    movePictureOut(picture, new THREE.Vector3(camera.position.z / 2, cameraGroup.position.y - sizes.viewportHeight, 0))
     moveDisplayPicture(true)
 }
 
@@ -675,14 +669,16 @@ function replacePicture(picture) {
     selectedPicture = undefined
 }
 
-function nextPicture(pictureGroup) {
+function nextPicture() {
+    console.log("Next Picture")
     // find the next picture
     // replace current picture
     // pull next picture
 
 }
 
-function previousPicture(pictureGroup) {
+function previousPicture() {
+    console.log("Previous Picture")
     // find the prev picture
     // replace current picture
     // pull prev picture
@@ -718,7 +714,7 @@ function moveDisplayPicture(reverse) {
     gsap.to(displayPicture.position, { 
         duration: parameters.animationSpeed,
         x: reverse ? camera.position.z - calcObjectDistance(frame.parameters.width, frame.parameters.height, 95) : 0,
-        y: reverse ? camera.position.y : camera.position.y - sizes.viewportHeight,
+        y: reverse ? cameraGroup.position.y : cameraGroup.position.y - sizes.viewportHeight,
         ease:  reverse ? "power4.out" : "power4.in",
         delay: reverse ? parameters.animationSpeed*0.5 : 0
     })
@@ -742,12 +738,36 @@ function moveCameraIn(yMax) {
     })
 }
 
+let isMovingCamera = false;
+function moveCameraGroup(newY) {
+    if (isMovingCamera) {
+        return setTimeout(() => moveCameraGroup(newY), 10)
+    }
+    const newPos = cameraGroup.position.y + newY;
+    if (newPos > cameraMaxY || newPos < cameraMinY) {
+        console.log("Camera reached the end because new position is ", newPos, "camera min y is ", cameraMinY, " and camera max y is ", cameraMaxY)
+        return gsap.to(camera.rotation, {x: 0, duration: parameters.animationSpeed / 2, ease: "power4.out"});
+    }
+    gsap.to(cameraGroup.position, { 
+        duration: parameters.animationSpeed / 2,
+        y: newPos,
+        ease:  "power4.out",
+        onStart: () => { isMovingCamera = true; },
+        onComplete: () => { isMovingCamera = false; },
+    })
+    gsap.to(camera.rotation, {x: 0, duration: parameters.animationSpeed / 2, ease: "power4.out"})
+    updateSpotlightPosition(newY)
+}
+
 function isImageContainerIntersect(intersect) {
     return intersect.object.parent?.name?.includes('imageContainer');
 }
 
 //#region Events
 function onClickEnd(event) {
+    if (selectedPicture) {
+        return replacePicture(selectedPicture)
+    }
     // Check if the event is a touch event
     if (event.type === 'touchend') {
         // Use the first touch point from changedTouches
@@ -768,11 +788,7 @@ function onClickEnd(event) {
 
     // If there's an intersection, call update State
     if (imageContainerIntersects.length > 0 && !isAnimating) {
-        if (selectedPicture) {
-            replacePicture(selectedPicture)
-        } else {
-            pullPicture(imageContainerIntersects[0].object.parent)
-        }
+       return pullPicture(imageContainerIntersects[0].object.parent)
     }
 }
 
@@ -826,26 +842,27 @@ function onClickDrag(event) {
             } else {
                 initialMouseY = movementY;
             }
-    
-            velocityY = deltaY * 0.01;
-            if (animationFrameId !== null) {
-                cancelAnimationFrame(animationFrameId);
-            }
-            animateDeceleration();
+            rotateCameraOnScroll(deltaY);
         }
     }
     else {
         prevMouse = { x: mouse.x, y: mouse.y };
     }
 }
+
+function onScrollEnd(deltaY, deltaX) {
+    //determine direction of scroll
+    if (scrollDirection === 'y') {
+        moveCameraGroup(parameters.categoryWireSeparation * Math.sign(deltaY));
+    } else {
+        if (!selectedPicture) return;
+        return deltaX > 0 ? nextPicture(selectedPicture) : previousPicture(selectedPicture);
+    }
+}
 // Global Variables
 let initialMouseY = null;
 let isClicking = false;
 let initialTouchY = null;
-let velocityY = 0;
-let damping = 0.975; // Adjust this factor to control the damping effect
-let animationFrameId = null;
-let isTouching = false;
 const cursor = {}
 cursor.x = 0
 cursor.y = 0
@@ -862,9 +879,6 @@ function onMouseDown(event) {
 }
 
 function onMouseUp(event) {
-    isClicking = false;
-    scrollDirection = undefined;
-    prevMouse = undefined;
     const mouseEndX = event.clientX;
     const mouseEndY = event.clientY;
 
@@ -873,10 +887,15 @@ function onMouseUp(event) {
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     const time = Date.now()-startTime
 
-    if ((time < 50 || distance < 4) || (selectedPicture && time < 100)) {
+    if ((time < 50 || distance < 4) || (selectedPicture && !isAnimating)) {
         onClickEnd(event);
     }
-
+    else {
+        onScrollEnd(deltaY, deltaX);
+    }
+    isClicking = false;
+    scrollDirection = undefined;
+    prevMouse = undefined;
     initialMouseY = null; // Reset the initial touch position
 }
 
@@ -893,12 +912,14 @@ function onTouchStart(event) {
     }
 }
 
+function rotateCameraOnScroll(delta) {
+    if (isMovingCamera) return;
+    camera.rotateX(THREE.MathUtils.degToRad(delta * parameters.cameraLookRate));
+}
+
 
 // Function to handle touch end event
 function onTouchEnd(event) {
-    isClicking = false;
-    scrollDirection = undefined;
-    prevMouse = undefined;
     const touchEndX = event.changedTouches[0].clientX;
     const touchEndY = event.changedTouches[0].clientY;
 
@@ -908,37 +929,20 @@ function onTouchEnd(event) {
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     console.log(distance)
 
-    if ((time < 100 && distance < 5) || (selectedPicture && time < 100)) {
+    if ((time < 100 && distance < 5) || (selectedPicture && !isAnimating)) {
         onClickEnd(event);
     }
-
+    else {
+        onScrollEnd(deltaY, deltaX);
+    }
+    isClicking = false;
+    scrollDirection = undefined;
+    prevMouse = undefined;
     initialTouchY = null; // Reset the initial touch position
 }
 
-// Function to handle deceleration animation
-function animateDeceleration() {
-    if ((!isClicking || !isTouching) && Math.abs(velocityY) > 0.001) {
-        // Apply damping to reduce velocity
-        velocityY *= damping;
-
-        // Adjust the camera position based on the velocity
-        camera.position.y += velocityY;
-        camera.position.y = Math.min(Math.max(camera.position.y, cameraMinY), cameraMaxY);
-        updateSpotlightPosition(velocityY);
-
-        // Request the next animation frame
-        animationFrameId = requestAnimationFrame(animateDeceleration);
-    } else {
-        // Stop the animation if velocity is too low
-        velocityY = 0;
-        animationFrameId = null;
-    }
-}
-
 function updateSpotlightPosition(deltaY) {
-    if (camera.position.y + deltaY < cameraMinY || camera.position.y + deltaY > cameraMaxY) return;
     spotLight.target.position.y += deltaY;
-    spotLight.target.position.y = Math.min(Math.max(spotLight.target.position.y, cameraMinY), cameraMaxY);
 }
 
 // Function to stop the camera scroll
@@ -956,7 +960,6 @@ function isMobileDevice() {
 }
 
 if (isMobileDevice()) {
-    damping = 0.95; // Adjust this factor to control the damping effect
     window.addEventListener('touchstart', onTouchStart, false);
     window.addEventListener('touchmove', onClickDrag, false);
     window.addEventListener('touchend', onTouchEnd, false);

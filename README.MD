@@ -1,8 +1,8 @@
 MUST DO
--category view
--some way of sorting gallery view
--Add Next/Close/Prev buttons 
+-Add Next/Prev on swipe
+-Add category text
 -Clothespin model
+-Scroll Pictures By Chunks
 
 NICE TO HAVE
 -What is the background
