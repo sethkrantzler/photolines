@@ -429,6 +429,7 @@ function createCategoryWireWithObjects(textureList, start, end) {
     const curve = new THREE.CatmullRomCurve3(curvePoints);
     const wireGeometry = new THREE.TubeGeometry(curve, wireSegments, parameters.wireThickness, 8, false);
     const wire = new THREE.Mesh(wireGeometry, wireMaterial);
+    wire.geometry.computeBoundingBox();
     wire.name = "categoryWire"
 
     group.add(wire);
@@ -810,9 +811,11 @@ function onClickDrag(event) {
             if (intersects.length > 0 && intersects[0].object.parent?.name?.includes('imageContainer')) {
                 const deltaX = prevMouse.x - mouse.x;
                 prevMouse = { x: mouse.x, y: mouse.y };
-                const wire = intersects[0].object.parent.parent.parent
-                wire.position.z += deltaX * 2
-                // clamp wire position to some parameter
+                const wireContainer = intersects[0].object.parent.parent.parent;
+                const wire = wireContainer.children[0];
+                wireContainer.position.z += deltaX * 2;
+                const wireHalfLength = Math.abs(wire.geometry.boundingBox.max.z - wire.geometry.boundingBox.min.z) / 2;
+                wireContainer.position.z = Math.min(Math.max(wireContainer.position.z, 0), 2*wireHalfLength - sizes.viewportWidth);
             }
         } else {
             console.log("drag in progress y");
