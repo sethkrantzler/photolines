@@ -89,7 +89,7 @@ function generateWall() {
     const plane = new THREE.Mesh(geometry, material);
     plane.receiveShadow = true; // Enable shadow receiving for the plane
     plane.rotation.y = Math.PI / 2; // Rotate the plane to face the camera
-    plane.position.x = -0.5; // Position the plane behind the images
+    plane.position.x = -0.25; // Position the plane behind the images
     scene.add(plane);
 }
 
@@ -103,11 +103,11 @@ scene.add(directionalLight)
 // Create a spotlight
 const spotlightIntensity = 10;
 const spotlightDistance = 7.8;
-const spotlightAngle = 0.54;
+const spotlightAngle = 0.33;
 const spotlightPenumbra = 0.5;
 const spotlightDecay = 0.33;
 const spotLight = new THREE.SpotLight('#ffffff', spotlightIntensity, spotlightDistance, spotlightAngle, spotlightPenumbra, spotlightDecay);
-spotLight.position.set(0, 1, 0);
+spotLight.position.set(-0.5, 1, 0);
 spotLight.castShadow = true;
 spotLight.shadow.mapSize.width = 1024;
 spotLight.shadow.mapSize.height = 1024;
@@ -125,9 +125,9 @@ lightFolder.add(spotLight, 'distance', 0, 100).name('Distance');
 lightFolder.add(spotLight, 'angle', 0, Math.PI / 2).name('Angle');
 lightFolder.add(spotLight, 'penumbra', 0, 5).name('Penumbra');
 lightFolder.add(spotLight, 'decay', 0, 5).name('Decay');
-lightFolder.add(spotLight.position, 'x', -10, 10).name('X Position').onChange(() => spotLightHelper.update());
-lightFolder.add(spotLight.position, 'y', -10, 10).name('Y Position').onChange(() => spotLightHelper.update());
-lightFolder.add(spotLight.position, 'z', -10, 10).name('Z Position').onChange(() => spotLightHelper.update());
+lightFolder.add(spotLight.position, 'x', -10, 10).name('X Position');
+lightFolder.add(spotLight.position, 'y', -10, 10).name('Y Position');
+lightFolder.add(spotLight.position, 'z', -10, 10).name('Z Position');
 lightFolder.open();
 
 //#region Loaders
@@ -301,7 +301,6 @@ createDisplayPicture()
  */
 function createGalleryWireWithObjects(start, end) {
     const group = new THREE.Group();
-    group.castShadow = true;
 
     // Wire
     const wireMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
@@ -322,7 +321,6 @@ function createGalleryWireWithObjects(start, end) {
     const wireGeometry = new THREE.TubeGeometry(curve, wireSegments, parameters.wireThickness, 8, false);
     const wire = new THREE.Mesh(wireGeometry, wireMaterial);
     wire.castShadow = true;
-    wire.receiveShadow = true;
     group.add(wire);
 
     // Spheres and Rectangles
@@ -375,15 +373,14 @@ function createGalleryWireWithObjects(start, end) {
         frame.name = 'frame'
         frame.position.z = 0.0199;
         frame.castShadow = true;
-        frame.receiveShadow = true;
 
         // Image geometry and material
         const imageGeometry = new THREE.PlaneGeometry(width, height);
         texture.colorSpace = THREE.SRGBColorSpace
         const imageMaterial = new THREE.MeshStandardMaterial({
             map: texture,
-            metalness: 0.5,
-            roughness: 0.1,
+            metalness: 0,
+            roughness: 1,
         });
         const image = new THREE.Mesh(imageGeometry, imageMaterial);
         image.name = 'picture'+(picturesLoaded);
@@ -431,6 +428,7 @@ function createCategoryWireWithObjects(textureList, start, end) {
     const wireGeometry = new THREE.TubeGeometry(curve, wireSegments, parameters.wireThickness, 8, false);
     const wire = new THREE.Mesh(wireGeometry, wireMaterial);
     wire.geometry.computeBoundingBox();
+    wire.castShadow = true;
     wire.name = "categoryWire"
 
     group.add(wire);
@@ -479,7 +477,8 @@ function createCategoryWireWithObjects(textureList, start, end) {
         const rectGeometry = new THREE.PlaneGeometry(width + parameters.framePadding, height + parameters.framePadding);
         const rectMaterial = new THREE.MeshBasicMaterial({ color: 'white', side: THREE.DoubleSide });
         const frame = new THREE.Mesh(rectGeometry, rectMaterial);
-        frame.name = 'frame'
+        frame.name = 'frame';
+        frame.castShadow = true;
         frame.position.z = 0.0199;
 
         // Image geometry and material
@@ -487,7 +486,7 @@ function createCategoryWireWithObjects(textureList, start, end) {
         texture.colorSpace = THREE.SRGBColorSpace
         const imageMaterial = new THREE.MeshStandardMaterial({
             map: texture,
-            metalness: 0.5,
+            metalness: 0.1,
             roughness: 0.1,
         });
         const image = new THREE.Mesh(imageGeometry, imageMaterial);
@@ -624,7 +623,8 @@ function removeLoadingScreen() {
 
 //#region Renderer
 const renderer = new THREE.WebGLRenderer({
-    canvas: canvas
+    canvas: canvas,
+    antialias: true
 })
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap; // You can choose the shadow map type
@@ -663,7 +663,6 @@ function pullPicture(picture) {
 
 function replacePicture(picture) {
     moveDisplayPicture(false)
-    // move the picture into end coordinates
     movePictureIn(picture, lastSelectedPicturePos)
     lastSelectedPicturePos = undefined
     selectedPicture = undefined
@@ -738,6 +737,24 @@ function moveCameraIn(yMax) {
     })
 }
 
+let isMovingWire = false;
+function moveWire(wireContainer, direction) {
+    if (isMovingWire) {
+        return setTimeout(() => moveWire(object), 10)
+    }
+    const wire = wireContainer.children[0];
+    const wireHalfLength = Math.abs(wire.geometry.boundingBox.max.z - wire.geometry.boundingBox.min.z) / 2;
+    const newPos = Math.min(Math.max(wireContainer.position.z - (sizes.viewportWidth*direction), 0), 2*wireHalfLength - sizes.viewportWidth);
+    gsap.to(wireContainer.position, { 
+        duration: parameters.animationSpeed / 2,
+        z: newPos,
+        ease:  "elastic.out(1, 0.75)",
+        onStart: () => { isMovingWire = true; },
+        onComplete: () => { isMovingWire = false; },
+    })
+    return gsap.to(camera.rotation, {y: 0, duration: parameters.animationSpeed / 2, ease: "power4.out"});
+}
+
 let isMovingCamera = false;
 function moveCameraGroup(newY) {
     if (isMovingCamera) {
@@ -794,6 +811,7 @@ function onClickEnd(event) {
 
 let prevMouse = undefined;
 let scrollDirection = undefined;
+let selectedWire = undefined;
 function onClickDrag(event) {
     if (selectedPicture) return
     // Determine the type of event and get the coordinates
@@ -825,24 +843,18 @@ function onClickDrag(event) {
     
             // If there's an intersection, call update State
             if (intersects.length > 0 && intersects[0].object.parent?.name?.includes('imageContainer')) {
+                selectedWire = intersects[0].object.parent.parent.parent;
                 const deltaX = prevMouse.x - mouse.x;
                 prevMouse = { x: mouse.x, y: mouse.y };
                 const wireContainer = intersects[0].object.parent.parent.parent;
-                const wire = wireContainer.children[0];
-                wireContainer.position.z += deltaX * 2;
-                const wireHalfLength = Math.abs(wire.geometry.boundingBox.max.z - wire.geometry.boundingBox.min.z) / 2;
-                wireContainer.position.z = Math.min(Math.max(wireContainer.position.z, 0), 2*wireHalfLength - sizes.viewportWidth);
+                wireContainer.position.z += deltaX * 0.5;
             }
         } else {
             console.log("drag in progress y");
             const movementY = event.type === 'touchmove' ? event.changedTouches[0].clientY : event.clientY
-            const deltaY = movementY - (initialTouchY !== null ? initialTouchY : initialMouseY);
-            if (event.type === 'touchmove') {
-                initialTouchY = movementY;
-            } else {
-                initialMouseY = movementY;
-            }
-            rotateCameraOnScroll(deltaY);
+            const deltaY = movementY - initialClick.y;
+            initialClick.y = movementY;
+            rotateCameraOnScroll(scrollDirection, deltaY);
         }
     }
     else {
@@ -855,14 +867,18 @@ function onScrollEnd(deltaY, deltaX) {
     if (scrollDirection === 'y') {
         moveCameraGroup(parameters.categoryWireSeparation * Math.sign(deltaY));
     } else {
-        if (!selectedPicture) return;
-        return deltaX > 0 ? nextPicture(selectedPicture) : previousPicture(selectedPicture);
+        if (!selectedPicture && selectedWire) {
+            moveWire(selectedWire, Math.sign(deltaX));
+            selectedWire = undefined;
+        }
+        else {
+            return deltaX > 0 ? nextPicture(selectedPicture) : previousPicture(selectedPicture);
+        }
     }
 }
 // Global Variables
-let initialMouseY = null;
+let initialClick = {x: undefined, y: undefined};
 let isClicking = false;
-let initialTouchY = null;
 const cursor = {}
 cursor.x = 0
 cursor.y = 0
@@ -874,7 +890,8 @@ function onMouseDown(event) {
     touchStartY = event.clientY;
 
     if (!selectedPicture) {
-        initialMouseY = touchStartY; // Store the initial touch position
+        initialClick.y = touchStartY; // Store the initial touch position
+        initialClick.x = touchStartX;
     }
 }
 
@@ -896,7 +913,8 @@ function onMouseUp(event) {
     isClicking = false;
     scrollDirection = undefined;
     prevMouse = undefined;
-    initialMouseY = null; // Reset the initial touch position
+    initialClick.y = null;
+    initialClick.x = null;
 }
 
 
@@ -908,13 +926,14 @@ function onTouchStart(event) {
     touchStartY = event.touches[0].clientY;
 
     if (!selectedPicture) {
-        initialTouchY = touchStartY; // Store the initial touch position
+        initialClick.y = touchStartY; // Store the initial touch position
+        initialClick.x = touchStartX;
     }
 }
 
-function rotateCameraOnScroll(delta) {
+function rotateCameraOnScroll(direction, delta) {
     if (isMovingCamera) return;
-    camera.rotateX(THREE.MathUtils.degToRad(delta * parameters.cameraLookRate));
+    return direction === 'y' ? camera.rotateX(THREE.MathUtils.degToRad(delta * parameters.cameraLookRate)) : camera.rotateY(THREE.MathUtils.degToRad(delta * parameters.cameraLookRate));
 }
 
 
@@ -938,20 +957,12 @@ function onTouchEnd(event) {
     isClicking = false;
     scrollDirection = undefined;
     prevMouse = undefined;
-    initialTouchY = null; // Reset the initial touch position
+    initialClick.y = null; // Reset the initial touch position
+    initialClick.x = null;
 }
 
 function updateSpotlightPosition(deltaY) {
     spotLight.target.position.y += deltaY;
-}
-
-// Function to stop the camera scroll
-function stopCameraScroll() {
-    if (animationFrameId !== null) {
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
-        velocityY = 0;
-    }
 }
 
 
