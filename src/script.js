@@ -8,7 +8,7 @@ import { OrbitControls } from 'three/examples/jsm/Addons.js'
  * Debug
  */
 const gui = new GUI()
-//gui.hide()
+gui.hide()
 
 //#region Variables
 let picturesLoaded = 0;
@@ -671,16 +671,25 @@ function replacePicture(picture) {
 function nextPicture() {
     console.log("Next Picture")
     // find the next picture
+    const nextPic = selectedPicture.parent.parent.children.find((obj) => obj.name === `picture-${parseInt(selectedPicture.parent.name.split('-')[1]) + 1}`).children.find((obj) => obj.name.includes('imageContainer'))
+    if (!nextPic) return;
     // replace current picture
+    replacePicture(selectedPicture)
+    moveWire(nextPic.parent.parent, -1, true)
     // pull next picture
-
+    setTimeout(() => pullPicture(nextPic), parameters.animationSpeed*1000)
 }
 
 function previousPicture() {
     console.log("Previous Picture")
-    // find the prev picture
+    // find the next picture
+    const prevPic = selectedPicture.parent.parent.children.find((obj) => obj.name === `picture-${parseInt(selectedPicture.parent.name.split('-')[1]) - 1}`).children.find((obj) => obj.name.includes('imageContainer'))
+    if (!prevPic) return;
     // replace current picture
-    // pull prev picture
+    replacePicture(selectedPicture)
+    moveWire(prevPic.parent.parent, 1, true)
+    // pull next picture
+    setTimeout(() => pullPicture(prevPic), parameters.animationSpeed*1000)
 }
 
 function movePictureOut(picture, position) {
@@ -738,19 +747,20 @@ function moveCameraIn(yMax) {
 }
 
 let isMovingWire = false;
-function moveWire(wireContainer, direction) {
+function moveWire(wireContainer, direction, singlePicture = false) {
     if (isMovingWire) {
         return setTimeout(() => moveWire(object), 10)
     }
     const wire = wireContainer.children[0];
     const wireHalfLength = Math.abs(wire.geometry.boundingBox.max.z - wire.geometry.boundingBox.min.z) / 2;
-    const newPos = Math.min(Math.max(wireContainer.position.z - (sizes.viewportWidth*direction), 0), 2*wireHalfLength - sizes.viewportWidth);
+    const newPos = Math.min(Math.max(wireContainer.position.z - (singlePicture ? parameters.pictureSize : sizes.viewportWidth)*direction, 0), 2*wireHalfLength - sizes.viewportWidth);
     gsap.to(wireContainer.position, { 
         duration: parameters.animationSpeed / 2,
         z: newPos,
         ease:  "elastic.out(1, 0.75)",
         onStart: () => { isMovingWire = true; },
         onComplete: () => { isMovingWire = false; },
+        delay: singlePicture ? parameters.animationSpeed*0.75 : 0
     })
     return gsap.to(camera.rotation, {y: 0, duration: parameters.animationSpeed / 2, ease: "power4.out"});
 }
@@ -872,7 +882,7 @@ function onScrollEnd(deltaY, deltaX) {
             selectedWire = undefined;
         }
         else {
-            return deltaX > 0 ? nextPicture(selectedPicture) : previousPicture(selectedPicture);
+            return deltaX < 0 ? nextPicture(selectedPicture) : previousPicture(selectedPicture);
         }
     }
 }
@@ -948,7 +958,7 @@ function onTouchEnd(event) {
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     console.log(distance)
 
-    if ((time < 100 && distance < 5) || (selectedPicture && !isAnimating)) {
+    if ((time < 100 && distance < 5) || (selectedPicture && !isAnimating && Math.abs(deltaX) < 10)) {
         onClickEnd(event);
     }
     else {
