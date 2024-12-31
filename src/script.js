@@ -1,5 +1,6 @@
 import * as THREE from 'three'
-import { RGBELoader } from 'three/examples/jsm/Addons.js'
+import { FontLoader } from 'three/examples/jsm/Addons.js'
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 import GUI from 'lil-gui'
 import gsap from 'gsap'
 import { OrbitControls } from 'three/examples/jsm/Addons.js'
@@ -547,17 +548,40 @@ function createGalleryWires(wires) {
 }
 
 function createCategoryWires() {
-    categoryList.forEach((category, i) => {
-        // Calculate yPosition to place the first wire at the top of the screen and then the other wires below it
-        const yPosition = parameters.offset - (i * parameters.categoryWireSeparation);
-        const categoryWireLength = parameters.pictureSize * category.images.length
-        const categoryTextures = category.images.map((imgName) => textureList[imgList.findIndex((img) => img === imgName)]);
-        const group = createCategoryWireWithObjects(categoryTextures,
-            new THREE.Vector3(0, yPosition, -(Math.max(categoryWireLength, parameters.wireLength))),
-            new THREE.Vector3(0, yPosition, parameters.wireLength)
-        );
-        objectsGroup.add(group);
-    })
+    const fontLoader = new FontLoader();
+
+    fontLoader.load('/fonts/helvetiker_regular.typeface.json', function (font) {
+        categoryList.forEach((category, i) => {
+            // Calculate yPosition to place the first wire at the top of the screen and then the other wires below it
+            const yPosition = parameters.offset - (i * parameters.categoryWireSeparation);
+            const categoryWireLength = parameters.pictureSize * category.images.length;
+            const categoryTextures = category.images.map((imgName) => textureList[imgList.findIndex((img) => img === imgName)]);
+            const group = createCategoryWireWithObjects(
+                categoryTextures,
+                new THREE.Vector3(0, yPosition, -(Math.max(categoryWireLength, parameters.wireLength))),
+                new THREE.Vector3(0, yPosition, parameters.wireLength)
+            );
+
+            // Add text above the group
+            const textGeometry = new TextGeometry(category.categoryName, {
+                font: font,
+                size: 0.2,
+                height: 0.025,
+                curveSegments: 12,
+                bevelEnabled: true, // Enable bevel
+                bevelThickness: 0.01, // Adjust bevel thickness as needed
+                bevelSize: 0.01, // Adjust bevel size as needed
+                bevelSegments: 3 // Adjust bevel segments as needed
+            });
+            const textMaterial = new THREE.MeshStandardMaterial({ color: '#30000a', metalness: 0.9, roughness: 0.1 });
+            const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+            textMesh.position.set(0, yPosition + 0.125, (sizes.viewportWidth / 2)*0.96); // Adjust position as needed
+            textMesh.rotation.y = Math.PI / 2;
+            scene.add(textMesh);
+
+            objectsGroup.add(group);
+        });
+    });
 }
 
 // Update objects when GUI parameters change
@@ -914,7 +938,7 @@ function onMouseUp(event) {
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     const time = Date.now()-startTime
 
-    if ((time < 50 || distance < 4) || (selectedPicture && !isAnimating)) {
+    if ((time < 50 || distance < 4) || (selectedPicture && !isAnimating && Math.abs(deltaY) > Math.abs(deltaX))) {
         onClickEnd(event);
     }
     else {
@@ -958,7 +982,7 @@ function onTouchEnd(event) {
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     console.log(distance)
 
-    if ((time < 100 && distance < 5) || (selectedPicture && !isAnimating && Math.abs(deltaX) < 10)) {
+    if ((time < 100 && distance < 5) || (selectedPicture && !isAnimating && Math.abs(deltaY) > Math.abs(deltaX))) {
         onClickEnd(event);
     }
     else {
