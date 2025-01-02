@@ -40,9 +40,6 @@
     "fatherhouse.jpg",
     "massshack.jpg",
     "naumkeag.jpg",
-    "birdlove.jpg",
-    "DSC01636.jpg",
-    "swissswan.jpg",
     "DSC00916.JPG",
     "DSC02768.jpg",
     "DSC04196.jpg",
@@ -50,7 +47,10 @@
     "meditationbench.jpg",
     "rollerblades.jpg",
     "underbrdige.jpg",
-    "yellowhydrant.jpg"
+    "yellowhydrant.jpg",
+    "birdlove.jpg",
+    "DSC01636.jpg",
+    "swissswan.jpg"
   ],
   "categoryList": [
     {
@@ -114,14 +114,6 @@
       ]
     },
     {
-      "categoryName": "6. animals",
-      "images": [
-        "birdlove.jpg",
-        "DSC01636.jpg",
-        "swissswan.jpg"
-      ]
-    },
-    {
       "categoryName": "5. street",
       "images": [
         "DSC00916.JPG",
@@ -132,6 +124,14 @@
         "rollerblades.jpg",
         "underbrdige.jpg",
         "yellowhydrant.jpg"
+      ]
+    },
+    {
+      "categoryName": "6. animals",
+      "images": [
+        "birdlove.jpg",
+        "DSC01636.jpg",
+        "swissswan.jpg"
       ]
     }
   ]
