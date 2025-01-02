@@ -9,7 +9,7 @@ import { OrbitControls } from 'three/examples/jsm/Addons.js'
  * Debug
  */
 const gui = new GUI()
-//gui.hide()
+gui.hide()
 
 //#region Variables
 let picturesLoaded = 0;
