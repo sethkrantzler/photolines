@@ -2,12 +2,18 @@
   "imgList": [
     "birdlove.jpg",
     "DSC01636.jpg",
+    "pokelove.jpg",
+    "swissswan.jpg",
+    "ausbuilding.jpg",
     "DSC00065.jpg",
     "DSC02365.jpg",
     "DSC03391.jpg",
     "DSC03534.jpg",
     "DSC03717.jpg",
     "fatherhouse.jpg",
+    "massshack.jpg",
+    "naumkeag.jpg",
+    "42.jpg",
     "DSC00975.JPG",
     "DSC01520.jpg",
     "DSC01654.jpg",
@@ -16,6 +22,27 @@
     "DSC03761.jpg",
     "DSC04123.jpg",
     "DSC04212.jpg",
+    "dadcake.jpg",
+    "devonblue.jpg",
+    "district.jpg",
+    "dougsail.jpg",
+    "DSC00484.jpg",
+    "DSC04145.jpg",
+    "DSC09639.jpg",
+    "emilyrave.jpg",
+    "londonphone.jpg",
+    "mileend.jpg",
+    "securitylock.jpg",
+    "tessamike.jpg",
+    "DSC00916.JPG",
+    "DSC02768.jpg",
+    "DSC04196.jpg",
+    "girlwater.jpg",
+    "meditationbench.jpg",
+    "rollerblades.jpg",
+    "underbrdige.jpg",
+    "yellowhydrant.jpg",
+    "barker.jpg",
     "DSC01599.jpg",
     "DSC01671.JPG",
     "DSC01689.JPG",
@@ -23,43 +50,37 @@
     "DSC03354.jpg",
     "DSC03421.jpg",
     "DSC09422.jpg",
-    "queenofheaerts.jpg",
-    "dougsail.jpg",
-    "DSC00484.jpg",
-    "DSC04145.jpg",
-    "DSC09639.jpg",
-    "londonphone.jpg",
-    "securitylock.jpg",
-    "DSC00916.JPG",
-    "DSC02768.jpg",
-    "DSC04196.jpg",
-    "girlwater.jpg",
-    "meditationbench.jpg",
-    "rollerblades.jpg",
-    "underbrdige.jpg"
+    "poodledog.jpg",
+    "queenofheaerts.jpg"
   ],
   "categoryList": [
     {
       "categoryName": "animals",
       "images": [
         "birdlove.jpg",
-        "DSC01636.jpg"
+        "DSC01636.jpg",
+        "pokelove.jpg",
+        "swissswan.jpg"
       ]
     },
     {
       "categoryName": "buildings",
       "images": [
+        "ausbuilding.jpg",
         "DSC00065.jpg",
         "DSC02365.jpg",
         "DSC03391.jpg",
         "DSC03534.jpg",
         "DSC03717.jpg",
-        "fatherhouse.jpg"
+        "fatherhouse.jpg",
+        "massshack.jpg",
+        "naumkeag.jpg"
       ]
     },
     {
       "categoryName": "favorites",
       "images": [
+        "42.jpg",
         "DSC00975.JPG",
         "DSC01520.jpg",
         "DSC01654.jpg",
@@ -71,27 +92,20 @@
       ]
     },
     {
-      "categoryName": "neon",
-      "images": [
-        "DSC01599.jpg",
-        "DSC01671.JPG",
-        "DSC01689.JPG",
-        "DSC01930.JPG",
-        "DSC03354.jpg",
-        "DSC03421.jpg",
-        "DSC09422.jpg",
-        "queenofheaerts.jpg"
-      ]
-    },
-    {
       "categoryName": "people",
       "images": [
+        "dadcake.jpg",
+        "devonblue.jpg",
+        "district.jpg",
         "dougsail.jpg",
         "DSC00484.jpg",
         "DSC04145.jpg",
         "DSC09639.jpg",
+        "emilyrave.jpg",
         "londonphone.jpg",
-        "securitylock.jpg"
+        "mileend.jpg",
+        "securitylock.jpg",
+        "tessamike.jpg"
       ]
     },
     {
@@ -103,7 +117,23 @@
         "girlwater.jpg",
         "meditationbench.jpg",
         "rollerblades.jpg",
-        "underbrdige.jpg"
+        "underbrdige.jpg",
+        "yellowhydrant.jpg"
+      ]
+    },
+    {
+      "categoryName": "neon",
+      "images": [
+        "barker.jpg",
+        "DSC01599.jpg",
+        "DSC01671.JPG",
+        "DSC01689.JPG",
+        "DSC01930.JPG",
+        "DSC03354.jpg",
+        "DSC03421.jpg",
+        "DSC09422.jpg",
+        "poodledog.jpg",
+        "queenofheaerts.jpg"
       ]
     }
   ]
