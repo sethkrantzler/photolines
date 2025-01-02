@@ -372,7 +372,7 @@ function createGalleryWireWithObjects(start, end) {
         const rectMaterial = new THREE.MeshBasicMaterial({ color: 'white', side: THREE.DoubleSide });
         const frame = new THREE.Mesh(rectGeometry, rectMaterial);
         frame.name = 'frame'
-        frame.position.z = 0.0199;
+        frame.position.z = 0.019;
         frame.castShadow = true;
 
         // Image geometry and material
@@ -476,11 +476,11 @@ function createCategoryWireWithObjects(textureList, start, end) {
         // Frame
         imageContainer.name = 'imageContainer'
         const rectGeometry = new THREE.PlaneGeometry(width + parameters.framePadding, height + parameters.framePadding);
-        const rectMaterial = new THREE.MeshBasicMaterial({ color: 'white', side: THREE.DoubleSide });
+        const rectMaterial = new THREE.MeshStandardMaterial({ color: 'white', side: THREE.DoubleSide, metalness: 0.2, roughness: 0.3 });
         const frame = new THREE.Mesh(rectGeometry, rectMaterial);
         frame.name = 'frame';
         frame.castShadow = true;
-        frame.position.z = 0.0199;
+        frame.position.z = 0.019;
 
         // Image geometry and material
         const imageGeometry = new THREE.PlaneGeometry(width, height);
