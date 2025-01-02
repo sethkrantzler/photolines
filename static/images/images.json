@@ -1,18 +1,5 @@
 {
   "imgList": [
-    "birdlove.jpg",
-    "DSC01636.jpg",
-    "pokelove.jpg",
-    "swissswan.jpg",
-    "ausbuilding.jpg",
-    "DSC00065.jpg",
-    "DSC02365.jpg",
-    "DSC03391.jpg",
-    "DSC03534.jpg",
-    "DSC03717.jpg",
-    "fatherhouse.jpg",
-    "massshack.jpg",
-    "naumkeag.jpg",
     "42.jpg",
     "DSC00975.JPG",
     "DSC01520.jpg",
@@ -22,6 +9,16 @@
     "DSC03761.jpg",
     "DSC04123.jpg",
     "DSC04212.jpg",
+    "barker.jpg",
+    "DSC01599.jpg",
+    "DSC01671.JPG",
+    "DSC01689.JPG",
+    "DSC01930.JPG",
+    "DSC03354.jpg",
+    "DSC03421.jpg",
+    "DSC09422.jpg",
+    "poodledog.jpg",
+    "queenofheaerts.jpg",
     "dadcake.jpg",
     "devonblue.jpg",
     "district.jpg",
@@ -34,6 +31,15 @@
     "mileend.jpg",
     "securitylock.jpg",
     "tessamike.jpg",
+    "ausbuilding.jpg",
+    "DSC00065.jpg",
+    "DSC02365.jpg",
+    "DSC03391.jpg",
+    "DSC03534.jpg",
+    "DSC03717.jpg",
+    "fatherhouse.jpg",
+    "massshack.jpg",
+    "naumkeag.jpg",
     "DSC00916.JPG",
     "DSC02768.jpg",
     "DSC04196.jpg",
@@ -42,43 +48,13 @@
     "rollerblades.jpg",
     "underbrdige.jpg",
     "yellowhydrant.jpg",
-    "barker.jpg",
-    "DSC01599.jpg",
-    "DSC01671.JPG",
-    "DSC01689.JPG",
-    "DSC01930.JPG",
-    "DSC03354.jpg",
-    "DSC03421.jpg",
-    "DSC09422.jpg",
-    "poodledog.jpg",
-    "queenofheaerts.jpg"
+    "birdlove.jpg",
+    "DSC01636.jpg",
+    "swissswan.jpg"
   ],
   "categoryList": [
     {
-      "categoryName": "animals",
-      "images": [
-        "birdlove.jpg",
-        "DSC01636.jpg",
-        "pokelove.jpg",
-        "swissswan.jpg"
-      ]
-    },
-    {
-      "categoryName": "buildings",
-      "images": [
-        "ausbuilding.jpg",
-        "DSC00065.jpg",
-        "DSC02365.jpg",
-        "DSC03391.jpg",
-        "DSC03534.jpg",
-        "DSC03717.jpg",
-        "fatherhouse.jpg",
-        "massshack.jpg",
-        "naumkeag.jpg"
-      ]
-    },
-    {
-      "categoryName": "favorites",
+      "categoryName": "1. favorites",
       "images": [
         "42.jpg",
         "DSC00975.JPG",
@@ -92,7 +68,22 @@
       ]
     },
     {
-      "categoryName": "people",
+      "categoryName": "2. neon",
+      "images": [
+        "barker.jpg",
+        "DSC01599.jpg",
+        "DSC01671.JPG",
+        "DSC01689.JPG",
+        "DSC01930.JPG",
+        "DSC03354.jpg",
+        "DSC03421.jpg",
+        "DSC09422.jpg",
+        "poodledog.jpg",
+        "queenofheaerts.jpg"
+      ]
+    },
+    {
+      "categoryName": "3. people",
       "images": [
         "dadcake.jpg",
         "devonblue.jpg",
@@ -109,7 +100,21 @@
       ]
     },
     {
-      "categoryName": "street",
+      "categoryName": "4. places",
+      "images": [
+        "ausbuilding.jpg",
+        "DSC00065.jpg",
+        "DSC02365.jpg",
+        "DSC03391.jpg",
+        "DSC03534.jpg",
+        "DSC03717.jpg",
+        "fatherhouse.jpg",
+        "massshack.jpg",
+        "naumkeag.jpg"
+      ]
+    },
+    {
+      "categoryName": "5. street",
       "images": [
         "DSC00916.JPG",
         "DSC02768.jpg",
@@ -122,18 +127,11 @@
       ]
     },
     {
-      "categoryName": "neon",
+      "categoryName": "6. animals",
       "images": [
-        "barker.jpg",
-        "DSC01599.jpg",
-        "DSC01671.JPG",
-        "DSC01689.JPG",
-        "DSC01930.JPG",
-        "DSC03354.jpg",
-        "DSC03421.jpg",
-        "DSC09422.jpg",
-        "poodledog.jpg",
-        "queenofheaerts.jpg"
+        "birdlove.jpg",
+        "DSC01636.jpg",
+        "swissswan.jpg"
       ]
     }
   ]
