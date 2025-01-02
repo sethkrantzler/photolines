@@ -1,15 +1,15 @@
 {
   "imgList": [
-    "42.jpg",
-    "DSC00975.JPG",
-    "DSC01520.jpg",
-    "DSC01654.jpg",
-    "DSC03125.jpg",
-    "DSC03649.jpg",
-    "DSC03761.jpg",
-    "DSC04123.jpg",
-    "DSC04212.jpg",
+    "1DSC03125.jpg",
+    "2DSC01520.jpg",
+    "2DSC03761.jpg",
+    "3DSC03649.jpg",
+    "3DSC04123.jpg",
+    "4DSC04212.jpg",
+    "5DSC01654.jpg",
+    "642.jpg",
     "barker.jpg",
+    "DSC00975.JPG",
     "DSC01599.jpg",
     "DSC01671.JPG",
     "DSC01689.JPG",
@@ -40,6 +40,9 @@
     "fatherhouse.jpg",
     "massshack.jpg",
     "naumkeag.jpg",
+    "birdlove.jpg",
+    "DSC01636.jpg",
+    "swissswan.jpg",
     "DSC00916.JPG",
     "DSC02768.jpg",
     "DSC04196.jpg",
@@ -47,30 +50,27 @@
     "meditationbench.jpg",
     "rollerblades.jpg",
     "underbrdige.jpg",
-    "yellowhydrant.jpg",
-    "birdlove.jpg",
-    "DSC01636.jpg",
-    "swissswan.jpg"
+    "yellowhydrant.jpg"
   ],
   "categoryList": [
     {
       "categoryName": "1. favorites",
       "images": [
-        "42.jpg",
-        "DSC00975.JPG",
-        "DSC01520.jpg",
-        "DSC01654.jpg",
-        "DSC03125.jpg",
-        "DSC03649.jpg",
-        "DSC03761.jpg",
-        "DSC04123.jpg",
-        "DSC04212.jpg"
+        "1DSC03125.jpg",
+        "2DSC01520.jpg",
+        "2DSC03761.jpg",
+        "3DSC03649.jpg",
+        "3DSC04123.jpg",
+        "4DSC04212.jpg",
+        "5DSC01654.jpg",
+        "642.jpg"
       ]
     },
     {
       "categoryName": "2. neon",
       "images": [
         "barker.jpg",
+        "DSC00975.JPG",
         "DSC01599.jpg",
         "DSC01671.JPG",
         "DSC01689.JPG",
@@ -114,6 +114,14 @@
       ]
     },
     {
+      "categoryName": "6. animals",
+      "images": [
+        "birdlove.jpg",
+        "DSC01636.jpg",
+        "swissswan.jpg"
+      ]
+    },
+    {
       "categoryName": "5. street",
       "images": [
         "DSC00916.JPG",
@@ -124,14 +132,6 @@
         "rollerblades.jpg",
         "underbrdige.jpg",
         "yellowhydrant.jpg"
-      ]
-    },
-    {
-      "categoryName": "6. animals",
-      "images": [
-        "birdlove.jpg",
-        "DSC01636.jpg",
-        "swissswan.jpg"
       ]
     }
   ]
