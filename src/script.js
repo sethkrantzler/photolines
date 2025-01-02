@@ -771,20 +771,20 @@ function moveCameraIn(yMax) {
 }
 
 let isMovingWire = false;
-function moveWire(wireContainer, direction, singlePicture = false) {
+function moveWire(wireContainer, direction, delay = false) {
     if (isMovingWire) {
         return setTimeout(() => moveWire(object), 10)
     }
     const wire = wireContainer.children[0];
     const wireHalfLength = Math.abs(wire.geometry.boundingBox.max.z - wire.geometry.boundingBox.min.z) / 2;
-    const newPos = Math.min(Math.max(wireContainer.position.z - (singlePicture ? parameters.pictureSize : sizes.viewportWidth)*direction, 0), 2*wireHalfLength - sizes.viewportWidth);
+    const newPos = Math.min(Math.max(wireContainer.position.z - parameters.pictureSize*direction, 0), 2*wireHalfLength - sizes.viewportWidth);
     gsap.to(wireContainer.position, { 
         duration: parameters.animationSpeed / 2,
         z: newPos,
         ease:  "elastic.out(1, 0.75)",
         onStart: () => { isMovingWire = true; },
         onComplete: () => { isMovingWire = false; },
-        delay: singlePicture ? parameters.animationSpeed*0.75 : 0
+        delay: delay ? parameters.animationSpeed*0.75 : 0
     })
     return gsap.to(camera.rotation, {y: 0, duration: parameters.animationSpeed / 2, ease: "power4.out"});
 }
@@ -878,10 +878,14 @@ function onClickDrag(event) {
             // If there's an intersection, call update State
             if (intersects.length > 0 && intersects[0].object.parent?.name?.includes('imageContainer')) {
                 selectedWire = intersects[0].object.parent.parent.parent;
-                const deltaX = prevMouse.x - mouse.x;
-                prevMouse = { x: mouse.x, y: mouse.y };
-                const wireContainer = intersects[0].object.parent.parent.parent;
-                wireContainer.position.z += deltaX * 0.5;
+                const movementX = event.type === 'touchmove' ? event.changedTouches[0].clientX : event.clientX
+                const deltaX = movementX - initialClick.x;
+                initialClick.x = movementX;
+                //rotateCameraOnScroll(scrollDirection, deltaX);
+                // const deltaX = prevMouse.x - mouse.x;
+                // prevMouse = { x: mouse.x, y: mouse.y };
+                // const wireContainer = intersects[0].object.parent.parent.parent;
+                // wireContainer.position.z += deltaX * 0.5;
             }
         } else {
             console.log("drag in progress y");
@@ -905,7 +909,7 @@ function onScrollEnd(deltaY, deltaX) {
             moveWire(selectedWire, Math.sign(deltaX));
             selectedWire = undefined;
         }
-        else {
+        else if (selectedPicture) {
             return deltaX < 0 ? nextPicture(selectedPicture) : previousPicture(selectedPicture);
         }
     }
