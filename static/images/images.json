@@ -1,11 +1,13 @@
 {
   "imgList": [
+    "birdlove.jpg",
     "DSC01636.jpg",
     "DSC00065.jpg",
     "DSC02365.jpg",
     "DSC03391.jpg",
     "DSC03534.jpg",
     "DSC03717.jpg",
+    "fatherhouse.jpg",
     "DSC00975.JPG",
     "DSC01520.jpg",
     "DSC01654.jpg",
@@ -21,17 +23,26 @@
     "DSC03354.jpg",
     "DSC03421.jpg",
     "DSC09422.jpg",
+    "queenofheaerts.jpg",
+    "dougsail.jpg",
     "DSC00484.jpg",
-    "DSC00916.JPG",
     "DSC04145.jpg",
     "DSC09639.jpg",
+    "londonphone.jpg",
+    "securitylock.jpg",
+    "DSC00916.JPG",
     "DSC02768.jpg",
-    "DSC04196.jpg"
+    "DSC04196.jpg",
+    "girlwater.jpg",
+    "meditationbench.jpg",
+    "rollerblades.jpg",
+    "underbrdige.jpg"
   ],
   "categoryList": [
     {
       "categoryName": "animals",
       "images": [
+        "birdlove.jpg",
         "DSC01636.jpg"
       ]
     },
@@ -42,7 +53,8 @@
         "DSC02365.jpg",
         "DSC03391.jpg",
         "DSC03534.jpg",
-        "DSC03717.jpg"
+        "DSC03717.jpg",
+        "fatherhouse.jpg"
       ]
     },
     {
@@ -67,23 +79,31 @@
         "DSC01930.JPG",
         "DSC03354.jpg",
         "DSC03421.jpg",
-        "DSC09422.jpg"
+        "DSC09422.jpg",
+        "queenofheaerts.jpg"
       ]
     },
     {
       "categoryName": "people",
       "images": [
+        "dougsail.jpg",
         "DSC00484.jpg",
-        "DSC00916.JPG",
         "DSC04145.jpg",
-        "DSC09639.jpg"
+        "DSC09639.jpg",
+        "londonphone.jpg",
+        "securitylock.jpg"
       ]
     },
     {
       "categoryName": "street",
       "images": [
+        "DSC00916.JPG",
         "DSC02768.jpg",
-        "DSC04196.jpg"
+        "DSC04196.jpg",
+        "girlwater.jpg",
+        "meditationbench.jpg",
+        "rollerblades.jpg",
+        "underbrdige.jpg"
       ]
     }
   ]
