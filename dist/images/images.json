@@ -1,27 +1,24 @@
 {
   "imgList": [
-    "birdlove.jpg",
-    "DSC01636.jpg",
-    "pokelove.jpg",
-    "swissswan.jpg",
-    "ausbuilding.jpg",
-    "DSC00065.jpg",
-    "DSC02365.jpg",
-    "DSC03391.jpg",
-    "DSC03534.jpg",
-    "DSC03717.jpg",
-    "fatherhouse.jpg",
-    "massshack.jpg",
-    "naumkeag.jpg",
-    "42.jpg",
+    "1DSC03125.jpg",
+    "2DSC01520.jpg",
+    "2DSC03761.jpg",
+    "3DSC03649.jpg",
+    "3DSC04123.jpg",
+    "4DSC04212.jpg",
+    "5DSC01654.jpg",
+    "642.jpg",
+    "barker.jpg",
     "DSC00975.JPG",
-    "DSC01520.jpg",
-    "DSC01654.jpg",
-    "DSC03125.jpg",
-    "DSC03649.jpg",
-    "DSC03761.jpg",
-    "DSC04123.jpg",
-    "DSC04212.jpg",
+    "DSC01599.jpg",
+    "DSC01671.JPG",
+    "DSC01689.JPG",
+    "DSC01930.JPG",
+    "DSC03354.jpg",
+    "DSC03421.jpg",
+    "DSC09422.jpg",
+    "poodledog.jpg",
+    "queenofheaerts.jpg",
     "dadcake.jpg",
     "devonblue.jpg",
     "district.jpg",
@@ -34,6 +31,18 @@
     "mileend.jpg",
     "securitylock.jpg",
     "tessamike.jpg",
+    "ausbuilding.jpg",
+    "DSC00065.jpg",
+    "DSC02365.jpg",
+    "DSC03391.jpg",
+    "DSC03534.jpg",
+    "DSC03717.jpg",
+    "fatherhouse.jpg",
+    "massshack.jpg",
+    "naumkeag.jpg",
+    "birdlove.jpg",
+    "DSC01636.jpg",
+    "swissswan.jpg",
     "DSC00916.JPG",
     "DSC02768.jpg",
     "DSC04196.jpg",
@@ -41,58 +50,40 @@
     "meditationbench.jpg",
     "rollerblades.jpg",
     "underbrdige.jpg",
-    "yellowhydrant.jpg",
-    "barker.jpg",
-    "DSC01599.jpg",
-    "DSC01671.JPG",
-    "DSC01689.JPG",
-    "DSC01930.JPG",
-    "DSC03354.jpg",
-    "DSC03421.jpg",
-    "DSC09422.jpg",
-    "poodledog.jpg",
-    "queenofheaerts.jpg"
+    "yellowhydrant.jpg"
   ],
   "categoryList": [
     {
-      "categoryName": "animals",
+      "categoryName": "1. favorites",
       "images": [
-        "birdlove.jpg",
-        "DSC01636.jpg",
-        "pokelove.jpg",
-        "swissswan.jpg"
+        "1DSC03125.jpg",
+        "2DSC01520.jpg",
+        "2DSC03761.jpg",
+        "3DSC03649.jpg",
+        "3DSC04123.jpg",
+        "4DSC04212.jpg",
+        "5DSC01654.jpg",
+        "642.jpg"
       ]
     },
     {
-      "categoryName": "buildings",
+      "categoryName": "2. neon",
       "images": [
-        "ausbuilding.jpg",
-        "DSC00065.jpg",
-        "DSC02365.jpg",
-        "DSC03391.jpg",
-        "DSC03534.jpg",
-        "DSC03717.jpg",
-        "fatherhouse.jpg",
-        "massshack.jpg",
-        "naumkeag.jpg"
-      ]
-    },
-    {
-      "categoryName": "favorites",
-      "images": [
-        "42.jpg",
+        "barker.jpg",
         "DSC00975.JPG",
-        "DSC01520.jpg",
-        "DSC01654.jpg",
-        "DSC03125.jpg",
-        "DSC03649.jpg",
-        "DSC03761.jpg",
-        "DSC04123.jpg",
-        "DSC04212.jpg"
+        "DSC01599.jpg",
+        "DSC01671.JPG",
+        "DSC01689.JPG",
+        "DSC01930.JPG",
+        "DSC03354.jpg",
+        "DSC03421.jpg",
+        "DSC09422.jpg",
+        "poodledog.jpg",
+        "queenofheaerts.jpg"
       ]
     },
     {
-      "categoryName": "people",
+      "categoryName": "3. people",
       "images": [
         "dadcake.jpg",
         "devonblue.jpg",
@@ -109,7 +100,29 @@
       ]
     },
     {
-      "categoryName": "street",
+      "categoryName": "4. places",
+      "images": [
+        "ausbuilding.jpg",
+        "DSC00065.jpg",
+        "DSC02365.jpg",
+        "DSC03391.jpg",
+        "DSC03534.jpg",
+        "DSC03717.jpg",
+        "fatherhouse.jpg",
+        "massshack.jpg",
+        "naumkeag.jpg"
+      ]
+    },
+    {
+      "categoryName": "6. animals",
+      "images": [
+        "birdlove.jpg",
+        "DSC01636.jpg",
+        "swissswan.jpg"
+      ]
+    },
+    {
+      "categoryName": "5. street",
       "images": [
         "DSC00916.JPG",
         "DSC02768.jpg",
@@ -119,21 +132,6 @@
         "rollerblades.jpg",
         "underbrdige.jpg",
         "yellowhydrant.jpg"
-      ]
-    },
-    {
-      "categoryName": "neon",
-      "images": [
-        "barker.jpg",
-        "DSC01599.jpg",
-        "DSC01671.JPG",
-        "DSC01689.JPG",
-        "DSC01930.JPG",
-        "DSC03354.jpg",
-        "DSC03421.jpg",
-        "DSC09422.jpg",
-        "poodledog.jpg",
-        "queenofheaerts.jpg"
       ]
     }
   ]
