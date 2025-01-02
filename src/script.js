@@ -82,58 +82,6 @@ const overlayMaterial = new THREE.ShaderMaterial({
 const overlay = new THREE.Mesh(overlayGeometry, overlayMaterial)
 scene.add(overlay)
 
-//#region Lights
-
-function generateWall() {
-    const geometry = new THREE.PlaneGeometry(100, 100);
-    const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-    const plane = new THREE.Mesh(geometry, material);
-    plane.receiveShadow = true; // Enable shadow receiving for the plane
-    plane.rotation.y = Math.PI / 2; // Rotate the plane to face the camera
-    plane.position.x = -0.25; // Position the plane behind the images
-    scene.add(plane);
-}
-
-// Call generateWall to add the background
-generateWall();
-
-const directionalLight = new THREE.DirectionalLight('#ffffff', 0.5)
-directionalLight.position.set(1, 1, 0)
-scene.add(directionalLight)
-
-// Create a spotlight
-const spotlightIntensity = 10;
-const spotlightDistance = 7.8;
-const spotlightAngle = 0.4;
-const spotlightPenumbra = 0.3;
-const spotlightDecay = 0.33;
-const spotLight = new THREE.SpotLight('#ffffff', spotlightIntensity, spotlightDistance, spotlightAngle, spotlightPenumbra, spotlightDecay);
-spotLight.position.set(-0.5, 1, 0);
-spotLight.castShadow = true;
-spotLight.shadow.mapSize.width = 1024;
-spotLight.shadow.mapSize.height = 1024;
-scene.add(spotLight);
-scene.add(spotLight.target)
-
-// Add a spotlight helper to visualize the spotlight
-// const spotLightHelper = new THREE.SpotLightHelper(spotLight);
-// scene.add(spotLightHelper);
-
-// Add lil-gui controls
-const lightFolder = gui.addFolder('Spotlight Position');
-lightFolder.add(spotLight, 'intensity', 0, 100).name('Intensity');
-lightFolder.add(spotLight, 'distance', 0, 100).name('Distance');
-lightFolder.add(spotLight, 'angle', 0, Math.PI / 2).name('Angle');
-lightFolder.add(spotLight, 'penumbra', 0, 5).name('Penumbra');
-lightFolder.add(spotLight, 'decay', 0, 5).name('Decay');
-lightFolder.add(spotLight.position, 'x', -10, 10).name('X Position');
-lightFolder.add(spotLight.position, 'y', -10, 10).name('Y Position');
-lightFolder.add(spotLight.position, 'z', -10, 10).name('Z Position');
-lightFolder.open();
-
-//#region Loaders
-const textureLoader = new THREE.TextureLoader()
-
 //#region Sizes
 let sizes = {
     width: window.innerWidth,
@@ -165,6 +113,76 @@ function calcViewportDistance() {
     console.log(`Left x/z coordinates: ${left}`);
     console.log(`Right x/z coordinates: ${right}`);
 }
+
+//#region Camera
+// Group
+const cameraGroup = new THREE.Group()
+scene.add(cameraGroup)
+
+// Base camera
+const camera = new THREE.PerspectiveCamera(50, sizes.width / sizes.height, 0.1, 100)
+camera.position.z = 6
+cameraGroup.add(camera)
+
+cameraGroup.rotation.y = Math.PI / 2
+calcViewportDistance()
+
+//#region Raycaster
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+//#region Lights
+
+function generateWall() {
+    const geometry = new THREE.PlaneGeometry(100, 100);
+    const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    const plane = new THREE.Mesh(geometry, material);
+    plane.receiveShadow = true; // Enable shadow receiving for the plane
+    plane.rotation.y = Math.PI / 2; // Rotate the plane to face the camera
+    plane.position.x = -0.25; // Position the plane behind the images
+    scene.add(plane);
+}
+
+// Call generateWall to add the background
+generateWall();
+
+const directionalLight = new THREE.DirectionalLight('#ffffff', 0.5)
+directionalLight.position.set(1, 1, 0)
+scene.add(directionalLight)
+
+// Create a spotlight
+const spotlightIntensity = 10;
+const spotlightDistance = 7.8;
+const spotlightAngle = 0.4;
+const spotlightPenumbra = 0.335;
+const spotlightDecay = 0.33;
+const spotLight = new THREE.SpotLight('#ffffff', spotlightIntensity, spotlightDistance, spotlightAngle, spotlightPenumbra, spotlightDecay);
+spotLight.position.set(-0.5, 1, 0);
+spotLight.castShadow = true;
+spotLight.shadow.mapSize.width = 1024;
+spotLight.shadow.mapSize.height = 1024;
+scene.add(spotLight);
+scene.add(spotLight.target)
+spotLight.parent = camera;
+
+// Add a spotlight helper to visualize the spotlight
+// const spotLightHelper = new THREE.SpotLightHelper(spotLight);
+// scene.add(spotLightHelper);
+
+// Add lil-gui controls
+const lightFolder = gui.addFolder('Spotlight Position');
+lightFolder.add(spotLight, 'intensity', 0, 100).name('Intensity');
+lightFolder.add(spotLight, 'distance', 0, 100).name('Distance');
+lightFolder.add(spotLight, 'angle', 0, Math.PI / 2).name('Angle');
+lightFolder.add(spotLight, 'penumbra', 0, 5).name('Penumbra');
+lightFolder.add(spotLight, 'decay', 0, 5).name('Decay');
+lightFolder.add(spotLight.position, 'x', -10, 10).name('X Position');
+lightFolder.add(spotLight.position, 'y', -10, 10).name('Y Position');
+lightFolder.add(spotLight.position, 'z', -10, 10).name('Z Position');
+lightFolder.open();
+
+//#region Loaders
+const textureLoader = new THREE.TextureLoader()
 
 /**
  * Calculate the distance from the camera that an object with given dimensions 
@@ -216,24 +234,6 @@ window.addEventListener('resize', () =>
     picturesLoaded = 0;
     createSceneObjects();
 })
-
-//#region Camera
-// Group
-const cameraGroup = new THREE.Group()
-scene.add(cameraGroup)
-
-// Base camera
-const camera = new THREE.PerspectiveCamera(50, sizes.width / sizes.height, 0.1, 100)
-camera.position.z = 6
-cameraGroup.add(camera)
-
-cameraGroup.rotation.y = Math.PI / 2
-calcViewportDistance();
-spotLight.parent = camera;
-
-//#region Raycaster
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
 
 // Controls
 // const controls = new OrbitControls(camera, canvas)
@@ -372,7 +372,7 @@ function createGalleryWireWithObjects(start, end) {
         const rectMaterial = new THREE.MeshBasicMaterial({ color: 'white', side: THREE.DoubleSide });
         const frame = new THREE.Mesh(rectGeometry, rectMaterial);
         frame.name = 'frame'
-        frame.position.z = 0.019;
+        frame.position.z = i*0.01 + 0.015;
         frame.castShadow = true;
 
         // Image geometry and material
@@ -385,7 +385,7 @@ function createGalleryWireWithObjects(start, end) {
         });
         const image = new THREE.Mesh(imageGeometry, imageMaterial);
         image.name = 'picture'+(picturesLoaded);
-        image.position.z = 0.02;
+        image.position.z =i*0.01 + 0.02;
 
         // Add the image to the scene or group
         imageContainer.add(image);
@@ -451,10 +451,10 @@ function createCategoryWireWithObjects(textureList, start, end) {
         
         // Sphere
         const sphereGeometry = new THREE.SphereGeometry(parameters.pinSize, 16, 16);
-        const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const sphereMaterial = new THREE.MeshStandardMaterial({ color: '#c0000a', metalness: 0.5, roughness: 0.1 });
         const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
         sphere.position.set(pos.x, pos.y, pos.z);
-        sphere.position.x += 0.02
+        sphere.position.x += i*0.01 + 0.025
 
         // Image 
         const imageContainer = new THREE.Group();
@@ -480,7 +480,7 @@ function createCategoryWireWithObjects(textureList, start, end) {
         const frame = new THREE.Mesh(rectGeometry, rectMaterial);
         frame.name = 'frame';
         frame.castShadow = true;
-        frame.position.z = 0.019;
+        frame.position.z = i*0.01 + 0.015;
 
         // Image geometry and material
         const imageGeometry = new THREE.PlaneGeometry(width, height);
@@ -492,7 +492,7 @@ function createCategoryWireWithObjects(textureList, start, end) {
         });
         const image = new THREE.Mesh(imageGeometry, imageMaterial);
         image.name = 'picture'+(picturesLoaded);
-        image.position.z = 0.02;
+        image.position.z = i*0.01 + 0.02;
 
         // Add the image to the scene or group
         imageContainer.add(image);
@@ -577,7 +577,7 @@ function createCategoryWires() {
             const textMesh = new THREE.Mesh(textGeometry, textMaterial);
             textMesh.position.set(0, yPosition + 0.125, (sizes.viewportWidth / 2)*0.96); // Adjust position as needed
             textMesh.rotation.y = Math.PI / 2;
-            scene.add(textMesh);
+            objectsGroup.add(textMesh);
 
             objectsGroup.add(group);
         });
@@ -669,6 +669,9 @@ const tick = () =>
      if (!selectedPicture && !isAnimating) {
         displayPicture.position.y = cameraGroup.position.y - sizes.viewportHeight
      }
+
+    // update spotlight
+    spotLight.rotation.setFromQuaternion
     renderer.render(scene, camera)
 
     // Call tick again on the next frame
@@ -695,7 +698,7 @@ function replacePicture(picture) {
 function nextPicture() {
     console.log("Next Picture")
     // find the next picture
-    const nextPic = selectedPicture.parent.parent.children.find((obj) => obj.name === `picture-${parseInt(selectedPicture.parent.name.split('-')[1]) + 1}`).children.find((obj) => obj.name.includes('imageContainer'))
+    const nextPic = selectedPicture.parent.parent.children.find((obj) => obj.name === `picture-${parseInt(selectedPicture.parent.name.split('-')[1]) + 1}`)?.children.find((obj) => obj.name.includes('imageContainer'))
     if (!nextPic) return;
     // replace current picture
     replacePicture(selectedPicture)
@@ -707,7 +710,7 @@ function nextPicture() {
 function previousPicture() {
     console.log("Previous Picture")
     // find the next picture
-    const prevPic = selectedPicture.parent.parent.children.find((obj) => obj.name === `picture-${parseInt(selectedPicture.parent.name.split('-')[1]) - 1}`).children.find((obj) => obj.name.includes('imageContainer'))
+    const prevPic = selectedPicture.parent.parent.children.find((obj) => obj.name === `picture-${parseInt(selectedPicture.parent.name.split('-')[1]) - 1}`)?.children.find((obj) => obj.name.includes('imageContainer'))
     if (!prevPic) return;
     // replace current picture
     replacePicture(selectedPicture)
@@ -796,6 +799,7 @@ function moveCameraGroup(newY) {
     }
     const newPos = cameraGroup.position.y + newY;
     if (newPos > cameraMaxY || newPos < cameraMinY) {
+        gsap.to(spotLight.target.position, {y: newPos > cameraMaxY ? cameraMaxY : cameraMinY, duration: parameters.animationSpeed / 2, ease: "power4.out"});
         console.log("Camera reached the end because new position is ", newPos, "camera min y is ", cameraMinY, " and camera max y is ", cameraMaxY)
         return gsap.to(camera.rotation, {x: 0, duration: parameters.animationSpeed / 2, ease: "power4.out"});
     }
@@ -807,7 +811,7 @@ function moveCameraGroup(newY) {
         onComplete: () => { isMovingCamera = false; },
     })
     gsap.to(camera.rotation, {x: 0, duration: parameters.animationSpeed / 2, ease: "power4.out"})
-    updateSpotlightPosition(newY)
+    updateSpotlightPosition(newPos)
 }
 
 function isImageContainerIntersect(intersect) {
@@ -878,14 +882,10 @@ function onClickDrag(event) {
             // If there's an intersection, call update State
             if (intersects.length > 0 && intersects[0].object.parent?.name?.includes('imageContainer')) {
                 selectedWire = intersects[0].object.parent.parent.parent;
-                const movementX = event.type === 'touchmove' ? event.changedTouches[0].clientX : event.clientX
-                const deltaX = movementX - initialClick.x;
-                initialClick.x = movementX;
-                //rotateCameraOnScroll(scrollDirection, deltaX);
-                // const deltaX = prevMouse.x - mouse.x;
-                // prevMouse = { x: mouse.x, y: mouse.y };
-                // const wireContainer = intersects[0].object.parent.parent.parent;
-                // wireContainer.position.z += deltaX * 0.5;
+                const deltaX = prevMouse.x - mouse.x;
+                prevMouse = { x: mouse.x, y: mouse.y };
+                const wireContainer = intersects[0].object.parent.parent.parent;
+                wireContainer.position.z += deltaX * 0.25;
             }
         } else {
             console.log("drag in progress y");
@@ -893,6 +893,7 @@ function onClickDrag(event) {
             const deltaY = movementY - initialClick.y;
             initialClick.y = movementY;
             rotateCameraOnScroll(scrollDirection, deltaY);
+            updateSpotlightPosition(spotLight.target.position.y + deltaY*0.01);
         }
     }
     else {
@@ -984,9 +985,9 @@ function onTouchEnd(event) {
     const deltaY = touchEndY - touchStartY;
     const time = Date.now() - startTime;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    console.log(distance)
+    console.log("time: ", time, "distance: ", distance)
 
-    if ((time < 100 && distance < 5) || (selectedPicture && !isAnimating && Math.abs(deltaY) > Math.abs(deltaX))) {
+    if ((time < 150 && distance < 15) || (distance < 8) || (selectedPicture && !isAnimating && Math.abs(deltaY) > Math.abs(deltaX))) {
         onClickEnd(event);
     }
     else {
@@ -999,8 +1000,8 @@ function onTouchEnd(event) {
     initialClick.x = null;
 }
 
-function updateSpotlightPosition(deltaY) {
-    spotLight.target.position.y += deltaY;
+function updateSpotlightPosition(newY) {
+    spotLight.target.position.y = newY;
 }
 
 

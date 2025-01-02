@@ -1,6 +1,7 @@
 MUST DO
--Add category text
 -Fix light glare flash
+-order categories
+-add more photos
 
 NICE TO HAVE
 -Clothespin model
